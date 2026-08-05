@@ -20,15 +20,16 @@ public class CustomUserDetailService implements UserDetailsService {
      * @param email 로그인 시도 이메일
      * @return 인증된 사용자의 정보를 담은 CustomUserDetails 객체
      * @throws UsernameNotFoundException 이메일에 해당하는 유저가 없을 경우 발생
-     * @throws CustomException 유저가 이메일 인증(CERTIFIED) 상태가 아닐 경우 발생
      */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // 계정 정지 기능이 포함되어 불가피하게 DB조회 로직 추가
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new UsernameNotFoundException("이메일로 사용자를 찾을 수 없음"));
-        if(user.getVeriStatus() != VerificationStatus.CERTIFIED)
-            throw new CustomException(ErrorCode.USER_NOT_CERTIFIED);
+
+        // TODO: 초기 ERD에 이메일 인증 상태 컬럼이 없어 체크를 비활성화합니다.
+        //       auth 담당자가 VerificationStatus 설계를 확정하면 복구할 것.
+        // if (user.getVeriStatus() != VerificationStatus.CERTIFIED)
+        //     throw new CustomException(ErrorCode.USER_NOT_CERTIFIED);
 
         return new CustomUserDetails(user);
     }

@@ -2,6 +2,8 @@ package com.mixmate.security;
 
 
 import com.mixmate.exception.CustomAuthenticationEntryPoint;
+import com.mixmate.exception.ErrorCode;
+import com.mixmate.redis.RedisService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
