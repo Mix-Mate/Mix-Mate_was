@@ -1,8 +1,9 @@
 package com.mixmate.security;
 
 
-import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.auth.repository.UserRepository;
+import com.mixmate.exception.CustomException;
+import com.mixmate.exception.ErrorCode;
 import com.mixmate.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class TokenService {
      * 회원 탈퇴/로그아웃 시 Redis에서 리프레시 토큰 삭제
      */
     public void deleteRefreshToken(Long userId) {
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         redisService.deleteData(RT_PREFIX + userId);

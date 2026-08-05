@@ -23,11 +23,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     boolean existsByEmail(String email);
 
-    /**
-     * 해당 닉네임을 가진 사용자가 DB에 이미 존재하는지
-     *
-     * @param nickname 닉네임
-     * @return
-     */
-    boolean existsByNickname(String nickname);
+    // TODO: 초기 ERD에 nickname 컬럼이 없어(user_name이 그 역할인지 불명) 우선 제거합니다.
+    //       Spring Data가 기동 시점에 프로퍼티를 찾지 못해 앱이 뜨지 않던 원인입니다.
+    //       auth 담당자가 User 설계를 확정하면 복구할 것.
+    // boolean existsByNickname(String nickname);
 }

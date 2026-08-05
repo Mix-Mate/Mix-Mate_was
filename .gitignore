@@ -65,3 +65,6 @@ out/
 
 
 sql/
+
+### 로컬 전용 설정 (DB 계정 등) ###
+src/main/resources/application-local.yaml
