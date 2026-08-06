@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 /**
  * 서비스 전역에서 사용하는 에러 코드입니다.
  *
- * 상수 이름이 곧 API 응답의 code 값이므로(name() 사용),
+ * 상수 이름이 곧 API 응답의 code 값입니다(name() 사용).
  * message는 기본 문구이며, API별로 다른 문구가 필요한 경우 호출부에서 덮어씁니다.
  */
 @Getter
@@ -15,7 +15,9 @@ public enum ErrorCode {
     // 공통 (전 엔드포인트)
     INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "입력값이 올바르지 않습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "대상을 찾을 수 없습니다."),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생하였습니다."),
 
     // 인증 / 토큰
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
@@ -32,12 +34,9 @@ public enum ErrorCode {
     ROUND_MISMATCH(HttpStatus.CONFLICT, "이미 종료되었거나 아직 시작되지 않은 라운드입니다."),
 
     // 조 편성 / 투표
-    /** TODO: 에러 코드 표에 HTTP 매핑이 없음. team 담당자 확인 후 정정할 것. */
+    // TODO: 아래 2개는 명세 에러 코드 표에 HTTP 매핑이 없어 잠정값. team/vote 담당자 확인 후 정정할 것.
     INSUFFICIENT_PARTICIPANTS(HttpStatus.CONFLICT, "조 편성에 필요한 최소 인원을 충족하지 못했습니다."),
-
-    /** TODO: 에러 코드 표에 HTTP 매핑이 없음. vote 담당자 확인 후 정정할 것. */
     VOTE_NOT_IN_PROGRESS(HttpStatus.CONFLICT, "투표가 진행중이 아닙니다."),
-
     ALREADY_VOTED(HttpStatus.CONFLICT, "이미 투표를 완료했습니다."),
     VOTE_TARGET_NOT_IN_TEAM(HttpStatus.CONFLICT, "같은 조원에게만 투표할 수 있습니다.");
 

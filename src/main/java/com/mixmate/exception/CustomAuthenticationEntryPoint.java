@@ -22,7 +22,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        ErrorDto errorDto = new ErrorDto(HttpStatus.UNAUTHORIZED.value(), "토큰이 없거나 만료되었습니다.");
+        ErrorDto errorDto = new ErrorDto(ErrorCode.UNAUTHORIZED, "토큰이 없거나 만료되었습니다.");
 
         ObjectMapper objectMapper = new ObjectMapper();
         response.getWriter().write(objectMapper.writeValueAsString(errorDto));
