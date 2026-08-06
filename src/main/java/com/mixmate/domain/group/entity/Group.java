@@ -36,4 +36,15 @@ public class Group {
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public static Group create(String title, String description, String inviteCode) {
+        return new Group(title, description, GroupStatus.BEFORE_FIRST_ASSIGNMENT, inviteCode);
+    }
+
+    private Group(String title, String description, GroupStatus status, String inviteCode) {
+        this.title = title;
+        this.description = description;
+        this.status = status;
+        this.inviteCode = inviteCode;
+    }
 }
