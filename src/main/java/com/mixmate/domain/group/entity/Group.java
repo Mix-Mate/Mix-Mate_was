@@ -20,8 +20,8 @@ public class Group {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long groupId;
 
-    @Column(nullable = false)
-    private String title;
+    @Column(name = "group_name", nullable = false)
+    private String groupName;
 
     @Column
     private String description;
@@ -37,12 +37,12 @@ public class Group {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public static Group create(String title, String description, String inviteCode) {
-        return new Group(title, description, GroupStatus.BEFORE_FIRST_ASSIGNMENT, inviteCode);
+    public static Group create(String groupName, String description, String inviteCode) {
+        return new Group(groupName, description, GroupStatus.BEFORE_FIRST_ASSIGNMENT, inviteCode);
     }
 
-    private Group(String title, String description, GroupStatus status, String inviteCode) {
-        this.title = title;
+    private Group(String groupName, String description, GroupStatus status, String inviteCode) {
+        this.groupName = groupName;
         this.description = description;
         this.status = status;
         this.inviteCode = inviteCode;

@@ -60,7 +60,7 @@ class GroupRepositoryTest {
         Optional<Group> notFound = groupRepository.findByInviteCode("NOPE9999");
 
         assertThat(found).isPresent();
-        assertThat(found.get().getTitle()).isEqualTo("신촌 모임");
+        assertThat(found.get().getGroupName()).isEqualTo("신촌 모임");
         assertThat(notFound).isEmpty();
     }
 
