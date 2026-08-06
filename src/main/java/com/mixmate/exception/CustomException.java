@@ -5,8 +5,8 @@ import lombok.Getter;
 /**
  * ErrorCode를 담아 던지는 서비스 공통 예외입니다.
  *
- * TODO: GlobalExceptionHandler(@RestControllerAdvice)를 추가해
- *       이 예외를 ErrorDto 응답으로 변환하는 처리를 붙일 것.
+ * 같은 code라도 API마다 노출 문구가 다른 경우가 있어(예: INVALID_GROUP_STATUS),
+ * 문구만 바꿔야 할 때는 message를 받는 생성자를 사용합니다.
  */
 @Getter
 public class CustomException extends RuntimeException {
@@ -15,6 +15,11 @@ public class CustomException extends RuntimeException {
 
     public CustomException(ErrorCode errorCode) {
         super(errorCode.getMessage());
+        this.errorCode = errorCode;
+    }
+
+    public CustomException(ErrorCode errorCode, String message) {
+        super(message);
         this.errorCode = errorCode;
     }
 }

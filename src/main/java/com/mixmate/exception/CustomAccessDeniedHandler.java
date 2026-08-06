@@ -22,7 +22,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        ErrorDto errorDto = new ErrorDto(HttpStatus.FORBIDDEN.value(), "접근 권한이 없습니다.");
+        ErrorDto errorDto = new ErrorDto(ErrorCode.FORBIDDEN, "접근 권한이 없습니다.");
 
         ObjectMapper objectMapper = new ObjectMapper();
         response.getWriter().write(objectMapper.writeValueAsString(errorDto));
