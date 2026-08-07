@@ -1,7 +1,7 @@
 package com.mixmate.domain.group.repository;
 
 import com.mixmate.domain.group.entity.Group;
-import com.mixmate.domain.group.entity.GroupStatus;
+import com.mixmate.domain.group.enums.GroupStatus;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

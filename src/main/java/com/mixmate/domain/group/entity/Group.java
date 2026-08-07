@@ -1,5 +1,6 @@
 package com.mixmate.domain.group.entity;
 
+import com.mixmate.domain.group.enums.GroupStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
