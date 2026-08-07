@@ -1,4 +1,4 @@
-package com.mixmate.domain.participant.entity.enums;
+package com.mixmate.domain.participant.enums;
 
 public enum Grade {
     FIRST, SECOND, THIRD, FOURTH

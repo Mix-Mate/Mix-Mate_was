@@ -1,6 +1,6 @@
 package com.mixmate.domain.participant.entity;
 
-import com.mixmate.domain.participant.entity.enums.*;
+import com.mixmate.domain.participant.enums.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;

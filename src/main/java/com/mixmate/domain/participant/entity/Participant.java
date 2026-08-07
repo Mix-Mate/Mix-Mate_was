@@ -2,8 +2,8 @@ package com.mixmate.domain.participant.entity;
 
 import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.group.entity.Group;
-import com.mixmate.domain.participant.entity.enums.Role;
-import com.mixmate.domain.participant.entity.enums.RoundParticipation;
+import com.mixmate.domain.participant.enums.Role;
+import com.mixmate.domain.participant.enums.RoundParticipation;
 import jakarta.persistence.*;
 import lombok.*;
 

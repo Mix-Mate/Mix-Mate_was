@@ -1,4 +1,4 @@
-package com.mixmate.domain.participant.entity.enums;
+package com.mixmate.domain.participant.enums;
 
 public enum Mbti {
     ISTP, ISTJ, ISFP, ISFJ, INTP, INTJ, INFP, INFJ,
