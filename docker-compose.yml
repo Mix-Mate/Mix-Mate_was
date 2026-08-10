@@ -1,0 +1,42 @@
+services:
+  # 1. 스프링 부트 애플리케이션 서비스
+  mixmate-app:
+    image: kdworld/mixmate-was:latest
+    platform: linux/amd64
+    container_name: mixmate-app
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Seoul
+    depends_on:
+      - mixmate-db
+      - mixmate-redis
+    restart: always
+
+  # 2. MySQL 데이터베이스 서비스
+  mixmate-db:
+    image: mysql:8.0
+    container_name: mixmate-db
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Seoul
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    restart: always
+
+  # 3. Redis 캐시 서비스
+  mixmate-redis:
+    image: redis:latest
+    container_name: mixmate-redis
+    ports:
+      - "6379:6379"
+    restart: always
