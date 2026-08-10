@@ -1,3 +1,5 @@
+.claude/
+
 # Compiled class file
 *.class
 
@@ -62,6 +64,7 @@ out/
 .vscode/
 
 .env
+mysql_data/
 
 
 sql/
