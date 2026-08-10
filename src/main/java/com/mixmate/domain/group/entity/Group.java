@@ -42,6 +42,11 @@ public class Group {
         return new Group(groupName, description, GroupStatus.BEFORE_FIRST_ASSIGNMENT, inviteCode);
     }
 
+    public void updateInfo(String groupName, String description) {
+        this.groupName = groupName;
+        this.description = description;
+    }
+
     private Group(String groupName, String description, GroupStatus status, String inviteCode) {
         this.groupName = groupName;
         this.description = description;
