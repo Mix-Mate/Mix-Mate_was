@@ -1,4 +1,4 @@
-정# 1단계: Builder Stage - 빌드를 전담하는 환경
+# 1단계: Builder Stage - 빌드를 전담하는 환경
 FROM eclipse-temurin:17-jdk-alpine AS builder
 WORKDIR /app
 
