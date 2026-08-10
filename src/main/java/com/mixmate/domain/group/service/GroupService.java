@@ -4,9 +4,12 @@ import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.auth.repository.UserRepository;
 import com.mixmate.domain.group.dto.GroupCreateRequest;
 import com.mixmate.domain.group.dto.GroupCreateResponse;
+import com.mixmate.domain.group.dto.GroupUpdateRequest;
 import com.mixmate.domain.group.entity.Group;
+import com.mixmate.domain.group.enums.GroupStatus;
 import com.mixmate.domain.group.repository.GroupRepository;
 import com.mixmate.domain.participant.entity.Participant;
+import com.mixmate.domain.participant.enums.Role;
 import com.mixmate.domain.participant.repository.ParticipantRepository;
 import com.mixmate.exception.CustomException;
 import com.mixmate.exception.ErrorCode;
@@ -46,5 +49,23 @@ public class GroupService {
         Participant host = Participant.createHost(user, group, dto.profile().toEntity());
         participantRepository.save(host);
         return new GroupCreateResponse(group.getGroupId(), group.getGroupName(), group.getInviteCode());
+    }
+
+    @Transactional
+    public void updateGroup(GroupUpdateRequest dto, Long groupId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        Participant participant = participantRepository.findByGroupAndUser(group, user)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        if (participant.getRole() != Role.HOST) {
+            throw new CustomException(ErrorCode.NOT_GROUP_ADMIN);
+        }
+        if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT) {
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS);
+        }
+        group.updateInfo(dto.groupName(), dto.description());
     }
 }
