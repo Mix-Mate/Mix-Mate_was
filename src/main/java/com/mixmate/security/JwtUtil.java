@@ -19,6 +19,7 @@ public class JwtUtil {
     //    @Value("${jwt.secret-key}")
     private final SecretKey secretKey;
 
+    @Getter
     private final long accessValid = 1000L * 60 * 60; // 1시간
     @Getter
     private final long refreshValid = 1000L * 60 * 60 * 24 * 7; // 7일
@@ -57,18 +58,26 @@ public class JwtUtil {
                 .getSubject();
     }
 
+    /**
+     * Authorization 헤더의 Bearer 토큰을 우선 확인하고, 없으면 accessToken 쿠키를 확인합니다.
+     * 로그인이 쿠키로 토큰을 내려주기 때문에, 브라우저 요청은 대부분 쿠키 경로로 인증됩니다.
+     */
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7); // "Bearer " 제거
         }
-        return null;
+        return extractCookie(request, "accessToken");
     }
 
     public String extractRefreshTokenFromCookie(HttpServletRequest request) {
+        return extractCookie(request, "refreshToken");
+    }
+
+    private String extractCookie(HttpServletRequest request, String name) {
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                if ("refreshToken".equals(cookie.getName())) {
+                if (name.equals(cookie.getName())) {
                     return cookie.getValue();
                 }
             }
