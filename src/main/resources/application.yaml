@@ -1,5 +1,47 @@
 spring:
   application:
     name: Mixmate-WAS
+
   profiles:
-    active: local
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:3306/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # Redis 설정 추가
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate.jdbc.time_zone: Asia/Seoul
+      hibernate.format_sql: true
+    show-sql: true
+
+  mail:
+    host: smtp.gmail.com # Google SMTP 서버
+    port: 587             # Google TLS 포트
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+jwt:
+  secret-key: ${JWT_SECRET}
+  issuer: ${JWT_ISSUER}
+  access-expiration: 1800000 # 30분
+  refresh-expiration: 1209600000 # 14일
+
+logging:
+  level:
+    org.springframework.security: DEBUG
