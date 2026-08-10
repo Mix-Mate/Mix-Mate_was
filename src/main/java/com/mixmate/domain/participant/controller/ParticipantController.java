@@ -4,6 +4,7 @@ import com.mixmate.domain.participant.dto.ParticipantListResponse;
 import com.mixmate.domain.participant.dto.ParticipantProfileResponse;
 import com.mixmate.domain.participant.enums.Round;
 import com.mixmate.domain.participant.service.ParticipantService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/groups")
+@SecurityRequirement(name = "JWT")
 public class ParticipantController {
 
     private final ParticipantService participantService;

@@ -3,6 +3,7 @@ package com.mixmate.domain.group.controller;
 import com.mixmate.domain.group.dto.GroupCreateRequest;
 import com.mixmate.domain.group.dto.GroupCreateResponse;
 import com.mixmate.domain.group.service.GroupService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import java.net.URI;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/groups")
+@SecurityRequirement(name = "JWT")
 public class GroupController {
 
     private final GroupService groupService;
