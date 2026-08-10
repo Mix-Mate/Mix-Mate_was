@@ -2,7 +2,9 @@ package com.mixmate.domain.participant.repository;
 
 import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.group.entity.Group;
+import com.mixmate.domain.participant.dto.ParticipantProfileDetail;
 import com.mixmate.domain.participant.entity.Participant;
+import com.mixmate.domain.participant.enums.RoundParticipation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -15,4 +17,8 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
     boolean existsByGroupAndUser(Group group, User user);
 
     Optional<Participant> findByGroupAndUser(Group group, User user);
+
+    List<Participant> findByGroupAndRoundParticipation(Group group, RoundParticipation roundParticipation);
+
+    Optional<Participant> findByParticipantIdAndGroup(Long participantId, Group group);
 }
