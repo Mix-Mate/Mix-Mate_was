@@ -23,6 +23,9 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     BLACKLIST_TOKEN(HttpStatus.UNAUTHORIZED, "로그아웃 처리된 토큰입니다."),
     JWT_TOKEN_PARSING_ERROR(HttpStatus.UNAUTHORIZED, "토큰이 유효하지 않거나 만료되었습니다."),
+    EMAIL_CONFLICTED(HttpStatus.CONFLICT, "이미 가입된 이메일입니다."),
+    EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "이메일 인증이 완료되지 않았습니다."),
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."),
 
     // 그룹 / 참가자
     INVALID_INVITE_CODE(HttpStatus.NOT_FOUND, "유효하지 않은 초대코드입니다."),
