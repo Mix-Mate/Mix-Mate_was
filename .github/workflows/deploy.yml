@@ -45,8 +45,9 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
             cd "/home/ubuntu"
             docker pull kdworld/mixmate-was:latest
-            docker-compose down
-            docker-compose up -d
+            docker compose down
+            docker compose up -d
             docker image prune -f
