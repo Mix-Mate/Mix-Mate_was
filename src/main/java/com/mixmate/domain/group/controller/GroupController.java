@@ -42,4 +42,13 @@ public class GroupController {
         groupService.updateGroup(dto, groupId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{groupId}")
+    public ResponseEntity<Void> deleteGroup(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        groupService.deleteGroup(groupId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
 }
