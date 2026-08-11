@@ -53,16 +53,7 @@ public class GroupService {
 
     @Transactional
     public void updateGroup(GroupUpdateRequest dto, Long groupId, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-        Participant participant = participantRepository.findByGroupAndUser(group, user)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-
-        if (participant.getRole() != Role.HOST) {
-            throw new CustomException(ErrorCode.NOT_GROUP_ADMIN);
-        }
+        Group group = getGroupAsHost(groupId, userId);
         if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT) {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS);
         }
@@ -71,20 +62,37 @@ public class GroupService {
 
     @Transactional
     public void deleteGroup(Long groupId, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-        Participant participant = participantRepository.findByGroupAndUser(group, user)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-
-        if (participant.getRole() != Role.HOST) {
-            throw new CustomException(ErrorCode.NOT_GROUP_ADMIN);
-        }
+        Group group = getGroupAsHost(groupId, userId);
         if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT) {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS);
         }
         participantRepository.deleteAllByGroup(group);
-        groupRepository.deleteById(groupId);
+        groupRepository.delete(group);
+    }
+
+    /**
+     * 요청자 본인의 참가 정보를 꺼내면서, 이 그룹의 참가자가 맞는지 함께 검증한다.
+     */
+    private Participant getMyParticipant(Long groupId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        return participantRepository.findByGroupAndUser(group, user)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+    }
+
+    /**
+     * 관리자 전용 API의 공통 진입점. 요청자가 HOST가 아니면 막고, 검증된 그룹을 돌려준다.
+     *
+     * getMyParticipant가 이미 같은 Group을 영속성 컨텍스트에 올려두므로,
+     * getGroup()을 불러도 LAZY 초기화가 일어나지 않는다. (같은 트랜잭션 내부에서만 성립)
+     */
+    private Group getGroupAsHost(Long groupId, Long userId) {
+        Participant participant = getMyParticipant(groupId, userId);
+        if (participant.getRole() != Role.HOST) {
+            throw new CustomException(ErrorCode.NOT_GROUP_ADMIN);
+        }
+        return participant.getGroup();
     }
 }
