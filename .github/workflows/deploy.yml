@@ -38,6 +38,16 @@ jobs:
           push: true
           tags: kdworld/mixmate-was:latest
 
+      # 서버에서 직접 고치면 다음 배포에 덮어써진다. .env는 전송하지 않는다.
+      - name: Copy compose files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml,Caddyfile"
+          target: "/home/ubuntu"
+
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
