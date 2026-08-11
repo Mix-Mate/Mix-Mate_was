@@ -1,11 +1,30 @@
 services:
+  # 0. 리버스 프록시 (HTTPS 종료)
+  mixmate-caddy:
+    image: caddy:2-alpine
+    container_name: mixmate-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Seoul
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - mixmate-app
+    restart: always
+
   # 1. 스프링 부트 애플리케이션 서비스
   mixmate-app:
     image: kdworld/mixmate-was:latest
     platform: linux/amd64
     container_name: mixmate-app
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     env_file:
       - .env
     environment:
@@ -37,3 +56,8 @@ services:
     image: redis:latest
     container_name: mixmate-redis
     restart: always
+
+# caddy_data에 인증서가 들어있다. 지우면 배포마다 재발급하다 Let's Encrypt 제한에 걸린다.
+volumes:
+  caddy_data:
+  caddy_config:

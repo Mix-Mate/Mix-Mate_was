@@ -1,3 +1,7 @@
+# 프록시 뒤에서 X-Forwarded-* 를 신뢰해 자신을 https로 인식한다.
+server:
+  forward-headers-strategy: framework
+
 spring:
   application:
     name: Mixmate-WAS
