@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * 실행 조건은 GroupRepositoryTest와 같습니다. 로컬 MySQL이 떠 있어야 하고,
  * 꺼져 있으면 스프링 컨텍스트 로딩부터 실패해 이 클래스 전체가 죽습니다.
  *
- * User는 아직 팀원(auth 담당) 영역이라 생성자가 없어서 네이티브 INSERT로 만들어 씁니다.
+ * User는 팀원(auth 담당) 영역이므로 빌더로 최소 필드만 채워 씁니다.
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -177,14 +177,12 @@ class ParticipantRepositoryTest {
     }
 
     private User insertUser(String userName, String email) {
-        em.createNativeQuery("insert into `user` (user_name, email) values (:name, :email)")
-                .setParameter("name", userName)
-                .setParameter("email", email)
-                .executeUpdate();
-        Long userId = ((Number) em.createNativeQuery(
-                        "select user_id from `user` where email = :email")
-                .setParameter("email", email)
-                .getSingleResult()).longValue();
-        return em.find(User.class, userId);
+        User user = User.builder()
+                .userName(userName)
+                .email(email)
+                .password("encoded-password")   // 인증 로직을 타지 않으므로 평문이어도 무방하다
+                .build();
+        em.persist(user);
+        return user;
     }
 }
