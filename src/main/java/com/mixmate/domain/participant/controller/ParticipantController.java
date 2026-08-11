@@ -1,7 +1,7 @@
 package com.mixmate.domain.participant.controller;
 
-import com.mixmate.domain.participant.dto.ParticipantListResponse;
-import com.mixmate.domain.participant.dto.ParticipantProfileResponse;
+import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
+import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
 import com.mixmate.domain.participant.enums.Round;
 import com.mixmate.domain.participant.service.ParticipantService;
 import com.mixmate.security.CustomUserDetails;

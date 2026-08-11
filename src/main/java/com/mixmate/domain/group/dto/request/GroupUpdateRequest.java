@@ -1,4 +1,4 @@
-package com.mixmate.domain.group.dto;
+package com.mixmate.domain.group.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -1,8 +1,8 @@
 package com.mixmate.domain.group.controller;
 
-import com.mixmate.domain.group.dto.GroupCreateRequest;
-import com.mixmate.domain.group.dto.GroupCreateResponse;
-import com.mixmate.domain.group.dto.GroupUpdateRequest;
+import com.mixmate.domain.group.dto.request.GroupCreateRequest;
+import com.mixmate.domain.group.dto.response.GroupCreateResponse;
+import com.mixmate.domain.group.dto.request.GroupUpdateRequest;
 import com.mixmate.domain.group.service.GroupService;
 import com.mixmate.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
