@@ -68,4 +68,23 @@ public class GroupService {
         }
         group.updateInfo(dto.groupName(), dto.description());
     }
+
+    @Transactional
+    public void deleteGroup(Long groupId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        Participant participant = participantRepository.findByGroupAndUser(group, user)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        if (participant.getRole() != Role.HOST) {
+            throw new CustomException(ErrorCode.NOT_GROUP_ADMIN);
+        }
+        if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT) {
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS);
+        }
+        participantRepository.deleteAllByGroup(group);
+        groupRepository.deleteById(groupId);
+    }
 }
