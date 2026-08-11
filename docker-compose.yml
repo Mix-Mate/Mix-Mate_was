@@ -1,11 +1,30 @@
 services:
+  # 0. 리버스 프록시 (HTTPS 종료)
+  mixmate-caddy:
+    image: caddy:2-alpine
+    container_name: mixmate-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Seoul
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - mixmate-app
+    restart: always
+
   # 1. 스프링 부트 애플리케이션 서비스
   mixmate-app:
     image: kdworld/mixmate-was:latest
     platform: linux/amd64
     container_name: mixmate-app
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     env_file:
       - .env
     environment:
@@ -16,6 +35,7 @@ services:
     restart: always
 
   # 2. MySQL 데이터베이스 서비스
+  # 포트를 열지 않는다. 서버에서 붙을 때는 docker exec mixmate-db mysql ... 을 쓴다.
   mixmate-db:
     image: mysql:8.0
     container_name: mixmate-db
@@ -27,8 +47,6 @@ services:
       - MYSQL_USER=${DB_USER}
       - MYSQL_PASSWORD=${DB_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-    ports:
-      - "3306:3306"
     volumes:
       - ./mysql_data:/var/lib/mysql
     restart: always
@@ -37,6 +55,9 @@ services:
   mixmate-redis:
     image: redis:latest
     container_name: mixmate-redis
-    ports:
-      - "6379:6379"
     restart: always
+
+# caddy_data에 인증서가 들어있다. 지우면 배포마다 재발급하다 Let's Encrypt 제한에 걸린다.
+volumes:
+  caddy_data:
+  caddy_config:

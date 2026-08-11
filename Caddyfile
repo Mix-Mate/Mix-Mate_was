@@ -1,0 +1,4 @@
+# EC2 배포용. DOMAIN은 서버의 .env에서 읽는다.
+{$DOMAIN} {
+	reverse_proxy mixmate-app:8080
+}
