@@ -4,10 +4,12 @@ import com.mixmate.domain.group.dto.GroupCreateRequest;
 import com.mixmate.domain.group.dto.GroupCreateResponse;
 import com.mixmate.domain.group.dto.GroupUpdateRequest;
 import com.mixmate.domain.group.service.GroupService;
+import com.mixmate.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -23,10 +25,9 @@ public class GroupController {
     @PostMapping
     public ResponseEntity<GroupCreateResponse> createGroup(
             @Valid @RequestBody GroupCreateRequest dto,
-            @RequestHeader("X-User-Id") Long userId
-            // TODO: auth 머지되면 @AuthenticationPrincipal CustomUserDetails userDetails로 교체
+            @AuthenticationPrincipal CustomUserDetails userDetails
             ) {
-        GroupCreateResponse response = groupService.createGroup(dto, userId);
+        GroupCreateResponse response = groupService.createGroup(dto, userDetails.getUserId());
         return ResponseEntity
                 .created(URI.create("/api/v1/groups/" + response.groupId()))
                 .body(response);
@@ -36,10 +37,9 @@ public class GroupController {
     public ResponseEntity<Void> updateGroup(
             @PathVariable Long groupId,
             @Valid @RequestBody GroupUpdateRequest dto,
-            @RequestHeader("X-User-Id") Long userId
-            // TODO: auth 머지되면 @AuthenticationPrincipal CustomUserDetails userDetails로 교체
+            @AuthenticationPrincipal CustomUserDetails userDetails
             ) {
-        groupService.updateGroup(dto, groupId, userId);
+        groupService.updateGroup(dto, groupId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 }
