@@ -1,6 +1,6 @@
-package com.mixmate.domain.group.dto;
+package com.mixmate.domain.group.dto.request;
 
-import com.mixmate.domain.participant.dto.ParticipantProfileRequest;
+import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

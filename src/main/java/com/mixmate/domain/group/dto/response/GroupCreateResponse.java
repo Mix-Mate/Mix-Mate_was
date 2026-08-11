@@ -1,4 +1,4 @@
-package com.mixmate.domain.group.dto;
+package com.mixmate.domain.group.dto.response;
 
 import com.mixmate.domain.group.entity.Group;
 

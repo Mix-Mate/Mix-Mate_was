@@ -1,4 +1,6 @@
-package com.mixmate.domain.participant.dto;
+package com.mixmate.domain.participant.dto.response;
+
+import com.mixmate.domain.participant.dto.ParticipantSummary;
 
 import java.util.List;
 

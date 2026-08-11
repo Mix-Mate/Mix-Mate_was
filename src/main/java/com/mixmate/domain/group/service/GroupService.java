@@ -2,9 +2,9 @@ package com.mixmate.domain.group.service;
 
 import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.auth.repository.UserRepository;
-import com.mixmate.domain.group.dto.GroupCreateRequest;
-import com.mixmate.domain.group.dto.GroupCreateResponse;
-import com.mixmate.domain.group.dto.GroupUpdateRequest;
+import com.mixmate.domain.group.dto.request.GroupCreateRequest;
+import com.mixmate.domain.group.dto.response.GroupCreateResponse;
+import com.mixmate.domain.group.dto.request.GroupUpdateRequest;
 import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.enums.GroupStatus;
 import com.mixmate.domain.group.repository.GroupRepository;

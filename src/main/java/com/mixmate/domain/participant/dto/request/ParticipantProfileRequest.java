@@ -1,4 +1,4 @@
-package com.mixmate.domain.participant.dto;
+package com.mixmate.domain.participant.dto.request;
 
 import com.mixmate.domain.participant.entity.ParticipantProfile;
 import com.mixmate.domain.participant.enums.*;
