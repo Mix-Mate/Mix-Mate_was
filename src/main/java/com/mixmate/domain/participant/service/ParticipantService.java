@@ -81,6 +81,16 @@ public class ParticipantService {
         return new ParticipantProfileResponse(ParticipantProfileDetail.from(participant));
     }
 
+    @Transactional
+    public void updateParticipantProfile(ParticipantProfileRequest dto, Long groupId, Long userId) {
+        Participant me = groupMembership.getMember(groupId, userId);
+
+        if (me.getGroup().getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT)
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 프로필 수정이 가능합니다.");
+
+        me.updateProfile(dto.toEntity());
+    }
+
     /**
      * 일반 참가자가 조 편성 이전에 스스로 그룹을 탈퇴합니다. 관리자(HOST)는 탈퇴할 수 없고,
      * 그룹 자체를 삭제해야 합니다.
