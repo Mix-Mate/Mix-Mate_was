@@ -49,7 +49,7 @@ public interface ParticipantApi {
                             """))),
             @ApiResponse(responseCode = "409", description = "아직 조 편성 전",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "현재 진행 상태에서 불가능한 요청입니다." }
+                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성이 완료된 이후에 조회할 수 있습니다." }
                             """)))
     })
     @GetMapping("/{groupId}/participants")
@@ -77,7 +77,7 @@ public interface ParticipantApi {
                                         { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
                                     """),
                             @ExampleObject(name = "비공개 프로필", value = """
-                                        { "code": "FORBIDDEN", "message": "권한이 없습니다." }
+                                        { "code": "FORBIDDEN", "message": "비공개 프로필입니다." }
                                     """)
                     })),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹이거나 그 그룹에 없는 참가자",
@@ -86,7 +86,7 @@ public interface ParticipantApi {
                                         { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                                     """),
                             @ExampleObject(name = "참가자 없음", value = """
-                                        { "code": "NOT_FOUND", "message": "대상을 찾을 수 없습니다." }
+                                        { "code": "NOT_FOUND", "message": "참가자를 찾을 수 없습니다." }
                                     """)
                     }))
     })

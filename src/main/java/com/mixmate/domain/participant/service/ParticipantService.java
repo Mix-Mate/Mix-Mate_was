@@ -33,7 +33,7 @@ public class ParticipantService {
         Group group = groupMembership.getMember(groupId, userId).getGroup();
 
         if (group.getStatus() == GroupStatus.BEFORE_FIRST_ASSIGNMENT)
-            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS);
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성이 완료된 이후에 조회할 수 있습니다.");
 
         List<Participant> participants = (round == Round.FIRST_ROUND)
                 ? participantRepository.findByGroup(group)
@@ -47,11 +47,11 @@ public class ParticipantService {
         Participant me = groupMembership.getMember(groupId, userId);
 
         Participant participant = participantRepository.findByParticipantIdAndGroup(participantId, me.getGroup())
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "참가자를 찾을 수 없습니다."));
 
         boolean isSelf = participant.getParticipantId().equals(me.getParticipantId());
         if (!isSelf && participant.getProfile().getVisibility() == Visibility.PRIVATE) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
+            throw new CustomException(ErrorCode.FORBIDDEN, "비공개 프로필입니다.");
         }
 
         return new ParticipantProfileResponse(ParticipantProfileDetail.from(participant));

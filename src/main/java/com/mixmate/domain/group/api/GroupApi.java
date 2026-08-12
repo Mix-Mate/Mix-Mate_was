@@ -72,7 +72,7 @@ public interface GroupApi {
                             """))),
             @ApiResponse(responseCode = "409", description = "조 편성 이후",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "현재 진행 상태에서 불가능한 요청입니다." }
+                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 수정할 수 있습니다." }
                             """)))
     })
     @PutMapping("/{groupId}")
@@ -106,7 +106,7 @@ public interface GroupApi {
                             """))),
             @ApiResponse(responseCode = "409", description = "조 편성 이후",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "현재 진행 상태에서 불가능한 요청입니다." }
+                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 삭제할 수 있습니다." }
                             """)))
     })
     @DeleteMapping("/{groupId}")

@@ -56,7 +56,7 @@ public class GroupService {
     public void updateGroup(GroupUpdateRequest dto, Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
         if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT) {
-            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS);
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 수정할 수 있습니다.");
         }
         group.updateInfo(dto.groupName(), dto.description());
     }
@@ -65,7 +65,7 @@ public class GroupService {
     public void deleteGroup(Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
         if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT) {
-            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS);
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 삭제할 수 있습니다.");
         }
         participantRepository.deleteAllByGroup(group);
         groupRepository.delete(group);
