@@ -10,6 +10,7 @@ import com.mixmate.domain.participant.dto.ParticipantProfileDetail;
 import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
 import com.mixmate.domain.participant.dto.ParticipantSummary;
 import com.mixmate.domain.participant.entity.Participant;
+import com.mixmate.domain.participant.enums.Role;
 import com.mixmate.domain.participant.enums.Round;
 import com.mixmate.domain.participant.enums.RoundParticipation;
 import com.mixmate.domain.participant.enums.Visibility;
@@ -70,5 +71,22 @@ public class ParticipantService {
         }
 
         return new ParticipantProfileResponse(ParticipantProfileDetail.from(participant));
+    }
+
+    @Transactional
+    public void leaveGroup(Long groupId, Long userId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "그룹정보가 없습니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Participant participant = participantRepository.findByGroupAndUser(group, user)
+                .orElseThrow(() -> new CustomException(ErrorCode.FORBIDDEN, "그룹에 대한 참가정보가 없습니다."));
+
+        if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT)
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 탈퇴할 수 있습니다.");
+        if (participant.getRole() == Role.HOST)
+            throw new CustomException(ErrorCode.FORBIDDEN, "관리자는 탈퇴할 수 없습니다. 그룹을 삭제해 주세요.");
+
+        participantRepository.delete(participant);
     }
 }
