@@ -2,6 +2,7 @@ package com.mixmate.domain.participant.repository;
 
 import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.group.entity.Group;
+import com.mixmate.domain.group.enums.GroupStatus;
 import com.mixmate.domain.participant.dto.ParticipantProfileDetail;
 import com.mixmate.domain.participant.entity.Participant;
 import com.mixmate.domain.participant.enums.RoundParticipation;
@@ -17,6 +18,8 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
 
     List<Participant> findByGroup(Group group);
 
+    long countByGroup(Group group);
+
     boolean existsByGroupAndUser(Group group, User user);
 
     Optional<Participant> findByGroupAndUser(Group group, User user);
@@ -24,6 +27,12 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
     List<Participant> findByGroupAndRoundParticipation(Group group, RoundParticipation roundParticipation);
 
     Optional<Participant> findByParticipantIdAndGroup(Long participantId, Group group);
+
+    /** scope=me&state=active — FINISHED를 제외한 그룹만 조회할 때 사용 */
+    List<Participant> findByUserAndGroup_StatusNot(User user, GroupStatus status);
+
+    /** scope=me&state=finished — FINISHED인 그룹만 조회할 때 사용 */
+    List<Participant> findByUserAndGroup_Status(User user, GroupStatus status);
 
     @Modifying(clearAutomatically = true)
     @Query("DELETE FROM Participant p WHERE p.group = :group")
