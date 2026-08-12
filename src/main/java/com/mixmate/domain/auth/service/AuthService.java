@@ -16,6 +16,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 회원가입, 로그인, 로그아웃을 처리하는 서비스입니다.
+ * 이메일 인증 발송/검증은 {@link SignUpEmailService}가 별도로 담당합니다.
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
