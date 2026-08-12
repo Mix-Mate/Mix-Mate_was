@@ -53,6 +53,22 @@ public class ParticipantController implements ParticipantApi {
     }
 
     /**
+     * 참가자의 프로필을 수정합니다.
+     * @param groupId 참여중인 프로필에 대한 그룹 식별자
+     * @param dto 수정할 프로필
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return
+     */
+    public ResponseEntity<Void> updateParticipantProfile(
+            @PathVariable Long groupId,
+            @Valid @RequestBody ParticipantProfileRequest dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        participantService.updateParticipantProfile(dto, groupId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * 일반 참가자가 조 편성 이전에 그룹을 탈퇴합니다.
      * @param groupId 탈퇴할 그룹 식별자
      * @param userDetails 로그인한 사용자의 인증 정보
