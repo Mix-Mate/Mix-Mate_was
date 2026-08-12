@@ -1,5 +1,6 @@
 package com.mixmate.domain.participant.api;
 
+import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
 import com.mixmate.domain.participant.enums.Round;
@@ -13,12 +14,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "참가자", description = "참가자 목록, 프로필 조회 및 그룹 탈퇴 API")
+@Tag(name = "참가자", description = "참가자 목록·프로필 조회, 참가자 추가·삭제, 그룹 탈퇴 API")
 @RequestMapping(value = "/api/v1/groups", produces = MediaType.APPLICATION_JSON_VALUE)
 @SecurityRequirement(name = "JWT")
 public interface ParticipantApi {
@@ -163,6 +165,45 @@ public interface ParticipantApi {
     ResponseEntity<Void> deleteParticipant(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(description = "삭제할 참가자 식별자", required = true) @PathVariable Long participantId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "참가자 추가",
+            description = "관리자가 로그인 계정이 없는 오프라인 참가자를 대신 등록합니다. "
+                    + "조 편성 이후에는 명단이 고정되므로 조 편성 전에만 가능합니다. "
+                    + "이렇게 추가된 참가자는 계정과 연결되지 않아 본인이 프로필을 수정할 수 없으므로, "
+                    + "잘못 입력했다면 삭제 후 다시 추가합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "참가자 추가 성공. 응답 헤더 Location에 추가된 참가자 경로가 담깁니다.",
+                    content = @Content),
+            @ApiResponse(responseCode = "400", description = "필수값 누락, enum 값 불일치 등 입력값 오류",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "이미 조 편성이 끝난 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 참가자를 추가할 수 있습니다." }
+                            """)))
+    })
+    @PostMapping("/{groupId}/participants")
+    ResponseEntity<Void> addParticipant(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Valid @RequestBody ParticipantProfileRequest dto,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 }
