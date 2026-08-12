@@ -3,6 +3,7 @@ package com.mixmate.domain.home.controller;
 import com.mixmate.domain.home.api.HomeGroupApi;
 import com.mixmate.domain.home.dto.request.HomeGroupJoinReqDto;
 import com.mixmate.domain.home.dto.request.HomeInviteCodeVerifyReqDto;
+import com.mixmate.domain.home.dto.response.HomeGroupListResDto;
 import com.mixmate.domain.home.dto.response.HomeInviteCodeVerifyResDto;
 import com.mixmate.domain.home.service.HomeGroupService;
 import com.mixmate.security.CustomUserDetails;
@@ -10,9 +11,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -46,5 +49,21 @@ public class HomeGroupController implements HomeGroupApi {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(homeGroupService.joinGroup(dto, userDetails.getUserId()));
+    }
+
+    /**
+     * 로그인한 사용자 본인이 참여중인 그룹 목록을 조회합니다.
+     * @param scope 조회 범위 ("me"만 지원)
+     * @param state "active"(진행중) 또는 "finished"(종료)
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 그룹 목록 (없으면 빈 배열)
+     */
+    @GetMapping
+    public ResponseEntity<HomeGroupListResDto> getMyGroups(
+            @RequestParam String scope,
+            @RequestParam String state,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(homeGroupService.getMyGroups(userDetails.getUserId(), scope, state));
     }
 }
