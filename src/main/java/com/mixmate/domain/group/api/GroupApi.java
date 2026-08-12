@@ -57,17 +57,22 @@ public interface GroupApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
                             """))),
-            @ApiResponse(responseCode = "403", description = "관리자가 아님",
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
-                            """))),
-            @ApiResponse(responseCode = "404", description = "그룹이 없거나 참여하지 않은 그룹",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "NOT_FOUND", "message": "대상을 찾을 수 없습니다." }
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
             @ApiResponse(responseCode = "409", description = "조 편성 이후",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "현재 진행 상태에서 불가능한 요청입니다." }
+                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 수정할 수 있습니다." }
                             """)))
     })
     @PutMapping("/{groupId}")
@@ -86,17 +91,22 @@ public interface GroupApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
                             """))),
-            @ApiResponse(responseCode = "403", description = "관리자가 아님",
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다."}
-                            """))),
-            @ApiResponse(responseCode = "404", description = "그룹이 없거나 참여하지 않은 그룹",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "NOT_FOUND", "message": "대상을 찾을 수 없습니다." }
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
             @ApiResponse(responseCode = "409", description = "조 편성 이후",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "현재 진행 상태에서 불가능한 요청입니다." }
+                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 삭제할 수 있습니다." }
                             """)))
     })
     @DeleteMapping("/{groupId}")

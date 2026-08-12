@@ -24,6 +24,12 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
 
     Optional<Participant> findByGroupAndUser(Group group, User user);
 
+    /**
+     * 요청자의 참가 정보를 userId만으로 찾는다.
+     * User 엔티티를 먼저 조회할 필요가 없어 요청당 SELECT 한 번이 줄어든다.
+     */
+    Optional<Participant> findByGroupAndUser_UserId(Group group, Long userId);
+
     List<Participant> findByGroupAndRoundParticipation(Group group, RoundParticipation roundParticipation);
 
     Optional<Participant> findByParticipantIdAndGroup(Long participantId, Group group);
