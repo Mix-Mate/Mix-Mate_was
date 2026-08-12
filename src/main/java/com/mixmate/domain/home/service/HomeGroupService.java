@@ -7,6 +7,8 @@ import com.mixmate.domain.group.enums.GroupStatus;
 import com.mixmate.domain.group.repository.GroupRepository;
 import com.mixmate.domain.home.dto.request.HomeGroupJoinReqDto;
 import com.mixmate.domain.home.dto.request.HomeInviteCodeVerifyReqDto;
+import com.mixmate.domain.home.dto.response.HomeGroupListResDto;
+import com.mixmate.domain.home.dto.response.HomeGroupSummaryResDto;
 import com.mixmate.domain.home.dto.response.HomeInviteCodeVerifyResDto;
 import com.mixmate.domain.participant.entity.Participant;
 import com.mixmate.domain.participant.repository.ParticipantRepository;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +53,37 @@ public class HomeGroupService {
         Participant participant = Participant.join(user, group, dto.getProfile().toEntity());
         participantRepository.save(participant);
         return HomeInviteCodeVerifyResDto.fromEntity(group);
+    }
+
+    /**
+     * 로그인한 사용자 본인이 참여중인(관리자·일반 참여자 모두 포함) 그룹 목록을 조회한다.
+     * state=active면 FINISHED를 제외한 진행중인 그룹만, state=finished면 FINISHED인 그룹만 내려준다.
+     * 참여 그룹이 없으면 빈 배열을 담아 200으로 응답한다.
+     */
+    @Transactional(readOnly = true)
+    public HomeGroupListResDto getMyGroups(Long userId, String scope, String state) {
+        if (!"me".equalsIgnoreCase(scope)) {
+            throw new CustomException(ErrorCode.INVALID_PARAMETER);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        List<Participant> participants;
+        if ("active".equalsIgnoreCase(state)) {
+            participants = participantRepository.findByUserAndGroup_StatusNot(user, GroupStatus.FINISHED);
+        } else if ("finished".equalsIgnoreCase(state)) {
+            participants = participantRepository.findByUserAndGroup_Status(user, GroupStatus.FINISHED);
+        } else {
+            throw new CustomException(ErrorCode.INVALID_PARAMETER);
+        }
+
+        List<HomeGroupSummaryResDto> groups = participants.stream()
+                .map(p -> HomeGroupSummaryResDto.fromEntity(
+                        p.getGroup(), p.getRole(), participantRepository.countByGroup(p.getGroup())))
+                .toList();
+
+        return HomeGroupListResDto.builder().groups(groups).build();
     }
 
     /**
