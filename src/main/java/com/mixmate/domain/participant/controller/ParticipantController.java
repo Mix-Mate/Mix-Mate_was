@@ -50,4 +50,12 @@ public class ParticipantController implements ParticipantApi {
     ) {
         return ResponseEntity.ok(participantService.getParticipantProfile(groupId, participantId, userDetails.getUserId()));
     }
+
+    public ResponseEntity<Void> leaveGroup(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        participantService.leaveGroup(groupId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
 }
