@@ -89,4 +89,26 @@ public class ParticipantService {
 
         participantRepository.delete(participant);
     }
+
+    @Transactional
+    public void deleteParticipant(Long groupId, Long targetParticipantId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "그룹정보가 없습니다."));
+        Participant participant = participantRepository.findByGroupAndUser(group, user)
+                .orElseThrow(() -> new CustomException(ErrorCode.FORBIDDEN, "그룹에 대한 참가정보가 없습니다."));
+
+        if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT)
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 참가자를 삭제할 수 있습니다.");
+        if (participant.getRole() != Role.HOST)
+            throw new CustomException(ErrorCode.NOT_GROUP_ADMIN);
+
+        Participant targetParticipant = participantRepository.findByParticipantIdAndGroup(targetParticipantId, group)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "삭제대상을 찾을 수 없습니다."));
+        if (targetParticipant.getRole() == Role.HOST)
+            throw new CustomException(ErrorCode.FORBIDDEN, "호스트 본인은 삭제할 수 없습니다.");
+
+        participantRepository.delete(targetParticipant);
+    }
 }
