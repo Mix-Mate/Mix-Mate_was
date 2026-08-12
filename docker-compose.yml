@@ -30,15 +30,19 @@ services:
     environment:
       - TZ=Asia/Seoul
     depends_on:
-      - mixmate-db
-      - mixmate-redis
+      mixmate-db:
+        condition: service_healthy
+      mixmate-redis:
+        condition: service_healthy
     restart: always
 
   # 2. MySQL 데이터베이스 서비스
-  # 포트를 열지 않는다. 서버에서 붙을 때는 docker exec mixmate-db mysql ... 을 쓴다.
+  # 3306을 127.0.0.1에만 묶는다 - 인터넷엔 안 열리고, 서버에서 SSH 터널로 DataGrip 등을 붙일 때만 사용
   mixmate-db:
     image: mysql:8.0
     container_name: mixmate-db
+    ports:
+      - "127.0.0.1:3306:3306"
     env_file:
       - .env
     environment:
@@ -49,12 +53,23 @@ services:
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
     restart: always
 
   # 3. Redis 캐시 서비스
   mixmate-redis:
     image: redis:latest
     container_name: mixmate-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: always
 
 # caddy_data에 인증서가 들어있다. 지우면 배포마다 재발급하다 Let's Encrypt 제한에 걸린다.
