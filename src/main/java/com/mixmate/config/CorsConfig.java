@@ -11,8 +11,6 @@ import java.util.List;
 /**
  * SecurityConfig가 주입받는 CorsConfigurationSource 빈입니다.
  * 이 빈이 없어서 애플리케이션 컨텍스트 로딩이 실패하고 있었습니다.
- *
- * TODO: 프론트 배포 주소가 정해지면 allowedOriginPatterns를 실제 도메인으로 좁힐 것.
  */
 @Configuration
 public class CorsConfig {
@@ -20,7 +18,11 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*"));
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "https://mix-mate-web.vercel.app",
+                "https://mix-mate-web-*.vercel.app" // PR/브랜치별 Vercel 프리뷰 배포 주소도 허용
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
