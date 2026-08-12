@@ -105,6 +105,39 @@ public interface ParticipantApi {
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 
+    @Operation(summary = "내 프로필 수정",
+            description = "요청자 본인의 그룹 프로필을 수정합니다. 프로필은 조 편성 조건으로 쓰이므로 "
+                    + "조 편성 전에만 수정할 수 있습니다. "
+                    + "PUT이므로 전체 교체이며, age·instaId·bio를 보내지 않으면 null로 지워집니다. "
+                    + "수정 대상은 이 그룹의 프로필뿐이며, 다른 그룹의 프로필에는 영향이 없습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "프로필 수정 성공"),
+            @ApiResponse(responseCode = "400", description = "필수값 누락, enum 값 불일치 등 입력값 오류",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아님",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "이미 조 편성이 끝난 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 프로필 수정이 가능합니다." }
+                            """)))
+    })
+    @PutMapping("/{groupId}/participants/me")
+    ResponseEntity<Void> updateParticipantProfile(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Valid @RequestBody ParticipantProfileRequest dto,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
     @Operation(summary = "그룹 탈퇴",
             description = "요청자 본인의 참가 정보를 삭제해 그룹에서 나갑니다. "
                     + "조 편성 이후에는 명단이 고정되므로 조 편성 전에만 가능하며, "
