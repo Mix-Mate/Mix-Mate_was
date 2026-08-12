@@ -41,11 +41,11 @@ public interface ParticipantApi {
                             """))),
             @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아님",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "FORBIDDEN", "message": "권한이 없습니다." }
+                                { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
                             """))),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "NOT_FOUND", "message": "대상을 찾을 수 없습니다." }
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
             @ApiResponse(responseCode = "409", description = "아직 조 편성 전",
                     content = @Content(examples = @ExampleObject(value = """
@@ -72,13 +72,23 @@ public interface ParticipantApi {
                                 { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
                             """))),
             @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 대상이 비공개 프로필",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "FORBIDDEN", "message": "권한이 없습니다." }
-                            """))),
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "비공개 프로필", value = """
+                                        { "code": "FORBIDDEN", "message": "권한이 없습니다." }
+                                    """)
+                    })),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹이거나 그 그룹에 없는 참가자",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "NOT_FOUND", "message": "대상을 찾을 수 없습니다." }
-                            """)))
+                    content = @Content(examples = {
+                            @ExampleObject(name = "그룹 없음", value = """
+                                        { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "참가자 없음", value = """
+                                        { "code": "NOT_FOUND", "message": "대상을 찾을 수 없습니다." }
+                                    """)
+                    }))
     })
     @GetMapping("/{groupId}/participants/{participantId}")
     ResponseEntity<ParticipantProfileResponse> getParticipantProfile(
