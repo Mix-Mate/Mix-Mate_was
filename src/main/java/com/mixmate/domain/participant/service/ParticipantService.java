@@ -5,6 +5,7 @@ import com.mixmate.domain.auth.repository.UserRepository;
 import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.enums.GroupStatus;
 import com.mixmate.domain.group.repository.GroupRepository;
+import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
 import com.mixmate.domain.participant.dto.ParticipantProfileDetail;
 import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
@@ -110,5 +111,24 @@ public class ParticipantService {
             throw new CustomException(ErrorCode.FORBIDDEN, "호스트 본인은 삭제할 수 없습니다.");
 
         participantRepository.delete(targetParticipant);
+    }
+
+    @Transactional
+    public Long addParticipant(ParticipantProfileRequest dto, Long groupId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "그룹정보가 없습니다."));
+        Participant participant = participantRepository.findByGroupAndUser(group, user)
+                .orElseThrow(() -> new CustomException(ErrorCode.FORBIDDEN, "그룹에 대한 참가정보가 없습니다."));
+
+        if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT)
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 참가자를 추가할 수 있습니다.");
+        if (participant.getRole() != Role.HOST)
+            throw new CustomException(ErrorCode.NOT_GROUP_ADMIN);
+
+        Participant addedParticipant = Participant.addByHost(group, dto.toEntity());
+        participantRepository.save(addedParticipant);
+        return addedParticipant.getParticipantId();
     }
 }
