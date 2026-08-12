@@ -1,5 +1,6 @@
 package com.mixmate.domain.auth.controller;
 
+import com.mixmate.domain.auth.api.AuthApi;
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
-public class AuthController {
+public class AuthController implements AuthApi {
     private final AuthService authService;
     private final SignUpEmailService signUpEmailService;
     private final JwtUtil jwtUtil;
@@ -100,7 +101,8 @@ public class AuthController {
     private ResponseCookie createCookie(String name, String value, long maxAgeMillis) {
         return ResponseCookie.from(name, value)
                 .httpOnly(true)
-                .sameSite("Lax")
+                .secure(true)
+                .sameSite("None")
                 .path("/")
                 .maxAge(TimeUnit.MILLISECONDS.toSeconds(maxAgeMillis))
                 .build();
