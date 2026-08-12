@@ -21,6 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 메인 홈 화면에서 쓰이는 그룹 참여코드 검증, 입장, 내 그룹 목록 조회를 처리하는 서비스입니다.
+ * 그룹 생성/수정/삭제는 이 클래스가 아니라 group 패키지의 GroupService가 담당합니다.
+ */
 @Service
 @RequiredArgsConstructor
 public class HomeGroupService {
@@ -31,12 +35,27 @@ public class HomeGroupService {
     private final ParticipantRepository participantRepository;
     private final UserRepository userRepository;
 
+    /**
+     * 참여코드가 실제로 존재하고 아직 만료(3일)되지 않은 그룹인지 검증합니다.
+     * 프로필 입력 화면으로 넘어가기 전, 코드만 먼저 빠르게 확인할 때 사용합니다.
+     *
+     * @param dto 검증할 참여코드
+     * @return 검증된 그룹의 최소 정보
+     */
     @Transactional(readOnly = true)
     public HomeInviteCodeVerifyResDto verifyInviteCode(HomeInviteCodeVerifyReqDto dto) {
         Group group = findValidGroupByInviteCode(dto.getInviteCode());
         return HomeInviteCodeVerifyResDto.fromEntity(group);
     }
 
+    /**
+     * 참여코드와 프로필을 함께 받아 그룹에 일반 참가자(PARTICIPANT)로 입장시킵니다.
+     * 조 편성이 이미 시작됐거나(BEFORE_FIRST_ASSIGNMENT가 아님) 이미 참여중이면 거부합니다.
+     *
+     * @param dto 참여코드와 본인 프로필
+     * @param userId 입장하는 사용자 식별자
+     * @return 입장한 그룹의 최소 정보
+     */
     @Transactional
     public HomeInviteCodeVerifyResDto joinGroup(HomeGroupJoinReqDto dto, Long userId) {
         User user = userRepository.findById(userId)

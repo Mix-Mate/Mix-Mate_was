@@ -9,6 +9,11 @@ import org.springframework.stereotype.Service;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 회원가입용 이메일 인증번호를 발송하고 검증하는 서비스입니다.
+ * 인증에 성공하면 Redis에 "VERIFIED_EMAIL:" + email -> "DONE"을 남겨, {@link AuthService#signUp}이
+ * 그 상태를 보고 가입을 허용합니다.
+ */
 @Service
 @RequiredArgsConstructor
 public class SignUpEmailService {
@@ -60,6 +65,10 @@ public class SignUpEmailService {
         return true;
     }
 
+    /**
+     * 6자리 숫자 인증번호를 무작위로 생성합니다.
+     * @return "100000"~"999999" 범위의 6자리 숫자 문자열
+     */
     private String generateCode() {
         return String.valueOf(new Random().nextInt(899999) + 100000); // 6자리 난수
     }
