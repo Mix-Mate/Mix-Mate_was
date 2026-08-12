@@ -26,9 +26,12 @@ import org.springframework.web.bind.annotation.*;
 public interface ParticipantApi {
 
     @Operation(summary = "참가자 목록 조회",
-            description = "조 편성이 끝난 그룹의 참가자를 차수별로 조회합니다. "
+            description = "그룹의 참가자를 차수별로 조회합니다. "
                     + "카드 표시에 필요한 최소 정보만 내려주며, 상세 프로필은 별도 조회합니다. "
-                    + "SECOND_ROUND는 2차 참석자만 포함됩니다.")
+                    + "FIRST_ROUND는 조 편성이 끝난 뒤부터 조회할 수 있지만, "
+                    + "관리자는 참가자를 추가·삭제해야 하므로 조 편성 전에도 조회할 수 있습니다. "
+                    + "SECOND_ROUND는 2차 참석자만 포함되며, 2차 진행이 확정된 뒤부터 조회할 수 있습니다. "
+                    + "조 편성 전이라도 참석자는 정해져 있으므로 조회됩니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -47,10 +50,15 @@ public interface ParticipantApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
-            @ApiResponse(responseCode = "409", description = "아직 조 편성 전",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성이 완료된 이후에 조회할 수 있습니다." }
-                            """)))
+            @ApiResponse(responseCode = "409", description = "참가자가 조 편성 전에 요청했거나, 2차 진행이 확정되기 전에 SECOND_ROUND를 요청",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "아직 조 편성 전", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "조 편성이 완료된 이후에 조회할 수 있습니다." }
+                                    """),
+                            @ExampleObject(name = "아직 2차 확정 전", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "2차 진행 상태에서만 조회할 수 있습니다." }
+                                    """)
+                    }))
     })
     @GetMapping("/{groupId}/participants")
     ResponseEntity<ParticipantListResponse> getParticipants(
