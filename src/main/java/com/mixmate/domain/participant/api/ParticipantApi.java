@@ -120,4 +120,49 @@ public interface ParticipantApi {
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
+
+    @Operation(summary = "참가자 삭제",
+            description = "관리자가 다른 참가자를 그룹에서 내보냅니다. "
+                    + "조 편성 이후에는 명단이 고정되므로 조 편성 전에만 가능하며, "
+                    + "관리자 본인은 대상으로 지정할 수 없습니다. 그룹을 정리하려면 그룹 삭제를 사용합니다. "
+                    + "대리 등록된 오프라인 참가자도 같은 방식으로 삭제됩니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "삭제 성공",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 관리자가 아니거나, 관리자 본인을 지정",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """),
+                            @ExampleObject(name = "관리자 본인은 삭제 불가", value = """
+                                        { "code": "FORBIDDEN", "message": "호스트 본인은 삭제할 수 없습니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹이거나, 그 그룹에 없는 참가자",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "그룹 없음", value = """
+                                        { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "삭제 대상 없음", value = """
+                                        { "code": "NOT_FOUND", "message": "삭제대상을 찾을 수 없습니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "409", description = "이미 조 편성이 끝난 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 참가자를 삭제할 수 있습니다." }
+                            """)))
+    })
+    @DeleteMapping("/{groupId}/participants/{participantId}")
+    ResponseEntity<Void> deleteParticipant(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(description = "삭제할 참가자 식별자", required = true) @PathVariable Long participantId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
 }

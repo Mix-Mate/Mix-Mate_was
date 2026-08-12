@@ -51,11 +51,33 @@ public class ParticipantController implements ParticipantApi {
         return ResponseEntity.ok(participantService.getParticipantProfile(groupId, participantId, userDetails.getUserId()));
     }
 
+    /**
+     * 일반 참가자가 조 편성 이전에 그룹을 탈퇴합니다.
+     * @param groupId 탈퇴할 그룹 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 본문 없는 204
+     */
     public ResponseEntity<Void> leaveGroup(
             @PathVariable Long groupId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         participantService.leaveGroup(groupId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 관리자가 조 편성 이전에 참가자를 삭제합니다.
+     * @param groupId 요청 그룹 식별자
+     * @param participantId 삭제 대상 참가자 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 본문 없는 204
+     */
+    public ResponseEntity<Void> deleteParticipant(
+            @PathVariable Long groupId,
+            @PathVariable Long participantId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        participantService.deleteParticipant(groupId, participantId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 }
