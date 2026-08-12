@@ -42,9 +42,12 @@ public class ParticipantService {
      */
     @Transactional(readOnly = true)
     public ParticipantListResponse getParticipants(Long groupId, Round round, Long userId) {
-        Group group = groupMembership.getMember(groupId, userId).getGroup();
+        Participant me = groupMembership.getMember(groupId, userId);
+        Group group = me.getGroup();
 
-        if (group.getStatus() == GroupStatus.BEFORE_FIRST_ASSIGNMENT)
+        if (round == Round.SECOND_ROUND && !group.getStatus().isSecondRoundAssigned())
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "2차 진행 상태에서만 조회할 수 있습니다.");
+        if (me.getRole() != Role.HOST && group.getStatus() == GroupStatus.BEFORE_FIRST_ASSIGNMENT)
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성이 완료된 이후에 조회할 수 있습니다.");
 
         List<Participant> participants = (round == Round.FIRST_ROUND)
