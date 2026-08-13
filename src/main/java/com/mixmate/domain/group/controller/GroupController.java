@@ -3,6 +3,7 @@ package com.mixmate.domain.group.controller;
 import com.mixmate.domain.group.api.GroupApi;
 import com.mixmate.domain.group.dto.request.GroupCreateRequest;
 import com.mixmate.domain.group.dto.response.GroupCreateResponse;
+import com.mixmate.domain.group.dto.response.GroupDetailResponse;
 import com.mixmate.domain.group.dto.request.GroupUpdateRequest;
 import com.mixmate.domain.group.service.GroupService;
 import com.mixmate.security.CustomUserDetails;
@@ -65,6 +66,13 @@ public class GroupController implements GroupApi {
     ) {
         groupService.deleteGroup(groupId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
+    }
+
+    public ResponseEntity<GroupDetailResponse> getGroupDetail(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(groupService.getGroupDetail(groupId, userDetails.getUserId()));
     }
 
     /**

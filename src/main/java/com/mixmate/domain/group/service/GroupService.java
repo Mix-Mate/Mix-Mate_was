@@ -4,6 +4,7 @@ import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.auth.repository.UserRepository;
 import com.mixmate.domain.group.dto.request.GroupCreateRequest;
 import com.mixmate.domain.group.dto.response.GroupCreateResponse;
+import com.mixmate.domain.group.dto.response.GroupDetailResponse;
 import com.mixmate.domain.group.dto.request.GroupUpdateRequest;
 import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.enums.GroupStatus;
@@ -83,6 +84,12 @@ public class GroupService {
         }
         participantRepository.deleteAllByGroup(group);
         groupRepository.delete(group);
+    }
+
+    @Transactional(readOnly = true)
+    public GroupDetailResponse getGroupDetail(Long groupId, Long userId) {
+        Participant me = groupMembership.getMember(groupId, userId);
+        return GroupDetailResponse.from(me, participantRepository.countByGroup(me.getGroup()));
     }
 
     @Transactional
