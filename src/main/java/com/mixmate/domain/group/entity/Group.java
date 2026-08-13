@@ -47,6 +47,11 @@ public class Group {
         this.description = description;
     }
 
+    // 관리자가 투표를 종료하면 조 편성 대기 상태로
+    public void finishVoting() {
+        this.status = GroupStatus.BEFORE_SECOND_ASSIGNMENT;
+    }
+
     private Group(String groupName, String description, GroupStatus status, String inviteCode) {
         this.groupName = groupName;
         this.description = description;
