@@ -3,6 +3,7 @@ package com.mixmate.domain.group.api;
 import com.mixmate.domain.group.dto.request.GroupCreateRequest;
 import com.mixmate.domain.group.dto.request.GroupUpdateRequest;
 import com.mixmate.domain.group.dto.response.GroupCreateResponse;
+import com.mixmate.domain.group.dto.response.GroupDetailResponse;
 import com.mixmate.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,7 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "그룹", description = "그룹 생성, 수정, 삭제, 진행 상태 변경 API")
+@Tag(name = "그룹", description = "그룹 생성, 조회, 수정, 삭제, 진행 상태 변경 API")
 @RequestMapping(value = "/api/v1/groups", produces = MediaType.APPLICATION_JSON_VALUE)
 @SecurityRequirement(name = "JWT")
 public interface GroupApi {
@@ -43,6 +44,33 @@ public interface GroupApi {
     @PostMapping
     ResponseEntity<GroupCreateResponse> createGroup(
             @Valid @RequestBody GroupCreateRequest dto,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "그룹 상세 조회",
+            description = "그룹의 기본 정보와 현재 진행 상태를 조회합니다. 진행 현황 화면이 이 응답 하나로 그려집니다. "
+                    + "요청자 본인의 역할(myRole)과 참가자 식별자(myParticipantId)도 함께 내려주며, "
+                    + "그룹 진행 상태와 무관하게 언제든 호출할 수 있습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = GroupDetailResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아님",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """)))
+    })
+    @GetMapping("/{groupId}")
+    ResponseEntity<GroupDetailResponse> getGroupDetail(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 

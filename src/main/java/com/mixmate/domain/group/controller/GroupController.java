@@ -3,6 +3,7 @@ package com.mixmate.domain.group.controller;
 import com.mixmate.domain.group.api.GroupApi;
 import com.mixmate.domain.group.dto.request.GroupCreateRequest;
 import com.mixmate.domain.group.dto.response.GroupCreateResponse;
+import com.mixmate.domain.group.dto.response.GroupDetailResponse;
 import com.mixmate.domain.group.dto.request.GroupUpdateRequest;
 import com.mixmate.domain.group.service.GroupService;
 import com.mixmate.security.CustomUserDetails;
@@ -65,6 +66,19 @@ public class GroupController implements GroupApi {
     ) {
         groupService.deleteGroup(groupId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 그룹의 기본 정보와 현재 진행 상태를 조회합니다.
+     * @param groupId 조회할 그룹 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 그룹 정보, 진행 상태, 요청자의 역할과 참가자 식별자
+     */
+    public ResponseEntity<GroupDetailResponse> getGroupDetail(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(groupService.getGroupDetail(groupId, userDetails.getUserId()));
     }
 
     /**
