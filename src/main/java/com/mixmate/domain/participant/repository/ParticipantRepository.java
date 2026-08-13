@@ -3,7 +3,6 @@ package com.mixmate.domain.participant.repository;
 import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.enums.GroupStatus;
-import com.mixmate.domain.participant.dto.ParticipantProfileDetail;
 import com.mixmate.domain.participant.entity.Participant;
 import com.mixmate.domain.participant.enums.RoundParticipation;
 import org.springframework.data.jpa.repository.JpaRepository;

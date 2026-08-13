@@ -4,7 +4,6 @@ import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.enums.GroupStatus;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
-import com.mixmate.domain.participant.dto.ParticipantProfileDetail;
 import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
 import com.mixmate.domain.participant.dto.ParticipantSummary;
 import com.mixmate.domain.participant.entity.Participant;
@@ -78,7 +77,7 @@ public class ParticipantService {
             throw new CustomException(ErrorCode.FORBIDDEN, "비공개 프로필입니다.");
         }
 
-        return new ParticipantProfileResponse(ParticipantProfileDetail.from(participant));
+        return ParticipantProfileResponse.from(participant);
     }
 
     @Transactional
