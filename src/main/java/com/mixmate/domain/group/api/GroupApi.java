@@ -19,7 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "그룹", description = "그룹 생성, 수정, 삭제 API")
+@Tag(name = "그룹", description = "그룹 생성, 수정, 삭제, 진행 상태 변경 API")
 @RequestMapping(value = "/api/v1/groups", produces = MediaType.APPLICATION_JSON_VALUE)
 @SecurityRequirement(name = "JWT")
 public interface GroupApi {
@@ -111,6 +111,39 @@ public interface GroupApi {
     })
     @DeleteMapping("/{groupId}")
     ResponseEntity<Void> deleteGroup(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "1차 종료 및 투표 시작",
+            description = "관리자가 1차 술자리를 종료하고 투표를 시작합니다. "
+                    + "그룹 상태가 VOTING으로 바뀌며 MVP 투표와 2차 참여 투표가 열립니다. 되돌릴 수 없습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "1차 종료 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "1차 진행 중이 아님(조 편성 전, 이미 투표 중, 2차, 종료됨)",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "INVALID_GROUP_STATUS", "message": "1차 진행 중에만 종료할 수 있습니다." }
+                            """)))
+    })
+    @PostMapping("/{groupId}/voting")
+    ResponseEntity<Void> finishFirstRound(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );

@@ -66,4 +66,18 @@ public class GroupController implements GroupApi {
         groupService.deleteGroup(groupId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * 1차 술자리를 종료하고 투표를 진행합니다.
+     * @param groupId 종료할 그룹 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 본문 없는 204
+     */
+    public ResponseEntity<Void> finishFirstRound(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        groupService.finishFirstRound(groupId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -47,6 +47,11 @@ public class Group {
         this.description = description;
     }
 
+    // 1차 종료하면 투표 상태로
+    public void startVoting() {
+        this.status = GroupStatus.VOTING;
+    }
+
     // 관리자가 투표를 종료하면 조 편성 대기 상태로
     public void finishVoting() {
         this.status = GroupStatus.BEFORE_SECOND_ASSIGNMENT;
