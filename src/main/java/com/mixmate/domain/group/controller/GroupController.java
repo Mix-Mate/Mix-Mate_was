@@ -66,4 +66,12 @@ public class GroupController implements GroupApi {
         groupService.deleteGroup(groupId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
+
+    public ResponseEntity<Void> finishFirstRound(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        groupService.finishFirstRound(groupId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -84,4 +84,13 @@ public class GroupService {
         participantRepository.deleteAllByGroup(group);
         groupRepository.delete(group);
     }
+
+    @Transactional
+    public void finishFirstRound(Long groupId, Long userId) {
+        Group group = groupMembership.getHost(groupId, userId).getGroup();
+        if (group.getStatus() != GroupStatus.FIRST_ROUND) {
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "1차 진행 중에만 종료할 수 있습니다.");
+        }
+        group.startVoting();
+    }
 }
