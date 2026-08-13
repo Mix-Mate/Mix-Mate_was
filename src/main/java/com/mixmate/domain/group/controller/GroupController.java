@@ -68,6 +68,12 @@ public class GroupController implements GroupApi {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 그룹의 기본 정보와 현재 진행 상태를 조회합니다.
+     * @param groupId 조회할 그룹 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 그룹 정보, 진행 상태, 요청자의 역할과 참가자 식별자
+     */
     public ResponseEntity<GroupDetailResponse> getGroupDetail(
             @PathVariable Long groupId,
             @AuthenticationPrincipal CustomUserDetails userDetails
