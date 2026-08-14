@@ -147,7 +147,7 @@ public interface GroupApi {
             description = "관리자가 1차 술자리를 종료하고 투표를 시작합니다. "
                     + "그룹 상태가 VOTING으로 바뀌며 MVP 투표와 2차 참여 투표가 열립니다. 되돌릴 수 없습니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "1차 종료 성공"),
+            @ApiResponse(responseCode = "204", description = "1차 종료 성공. 이미 투표 중인 그룹에 다시 호출해도 204입니다."),
             @ApiResponse(responseCode = "401", description = "인증 없음",
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
@@ -165,7 +165,7 @@ public interface GroupApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
-            @ApiResponse(responseCode = "409", description = "1차 진행 중이 아님(조 편성 전, 이미 투표 중, 2차, 종료됨)",
+            @ApiResponse(responseCode = "409", description = "1차 진행 중이 아님(조 편성 전, 2차, 종료됨)",
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "INVALID_GROUP_STATUS", "message": "1차 진행 중에만 종료할 수 있습니다." }
                             """)))
@@ -181,7 +181,7 @@ public interface GroupApi {
                     + "그룹 상태가 BEFORE_SECOND_ASSIGNMENT로 바뀌어 2차 조 편성을 할 수 있게 됩니다. "
                     + "2차에는 투표가 없습니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "2차 진행 결정 성공"),
+            @ApiResponse(responseCode = "204", description = "2차 진행 결정 성공. 이미 2차 조 편성 대기 중인 그룹에 다시 호출해도 204입니다."),
             @ApiResponse(responseCode = "401", description = "인증 없음",
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
@@ -199,7 +199,7 @@ public interface GroupApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
-            @ApiResponse(responseCode = "409", description = "투표 종료 상태가 아님",
+            @ApiResponse(responseCode = "409", description = "투표 종료 상태가 아님(2차 조 편성 대기 이후 단계 포함)",
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "INVALID_GROUP_STATUS", "message": "투표가 종료된 뒤에만 2차를 진행할 수 있습니다." }
                             """)))
@@ -215,7 +215,7 @@ public interface GroupApi {
                     + "투표 종료 직후(2차를 하지 않기로 한 경우)와 2차 진행 중에만 호출할 수 있고, "
                     + "2차를 하기로 한 뒤에는 조 편성을 마쳐야 종료할 수 있습니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "모임 종료 성공"),
+            @ApiResponse(responseCode = "204", description = "모임 종료 성공. 이미 종료된 그룹에 다시 호출해도 204입니다."),
             @ApiResponse(responseCode = "401", description = "인증 없음",
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
@@ -233,7 +233,7 @@ public interface GroupApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
-            @ApiResponse(responseCode = "409", description = "종료할 수 있는 상태가 아님(2차 조 편성 대기 중이거나 이미 종료됨 포함)",
+            @ApiResponse(responseCode = "409", description = "종료할 수 있는 상태가 아님(2차 조 편성 대기 중 포함)",
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "INVALID_GROUP_STATUS", "message": "투표 종료 후 또는 2차 진행 중에만 모임을 종료할 수 있습니다." }
                             """)))
