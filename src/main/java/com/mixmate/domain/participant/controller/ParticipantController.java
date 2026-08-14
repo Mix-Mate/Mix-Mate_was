@@ -2,6 +2,7 @@ package com.mixmate.domain.participant.controller;
 
 import com.mixmate.domain.participant.api.ParticipantApi;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
+import com.mixmate.domain.participant.dto.response.MyProfileResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
 import com.mixmate.domain.participant.enums.Round;
@@ -50,6 +51,19 @@ public class ParticipantController implements ParticipantApi {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(participantService.getParticipantProfile(groupId, participantId, userDetails.getUserId()));
+    }
+
+    /**
+     * 요청자 본인의 그룹 프로필을 조회합니다.
+     * @param groupId 조회할 그룹 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 수정 요청과 같은 모양의 내 프로필
+     */
+    public ResponseEntity<MyProfileResponse> getMyProfile(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(participantService.getMyProfile(groupId, userDetails.getUserId()));
     }
 
     /**

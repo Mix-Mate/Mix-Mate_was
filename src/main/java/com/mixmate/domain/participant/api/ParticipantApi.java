@@ -1,6 +1,7 @@
 package com.mixmate.domain.participant.api;
 
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
+import com.mixmate.domain.participant.dto.response.MyProfileResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
 import com.mixmate.domain.participant.enums.Round;
@@ -102,6 +103,33 @@ public interface ParticipantApi {
     ResponseEntity<ParticipantProfileResponse> getParticipantProfile(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(description = "조회할 참가자 식별자", required = true) @PathVariable Long participantId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "내 프로필 조회",
+            description = "요청자 본인의 그룹 프로필을 조회합니다. 프로필 수정 화면에 기존 값을 채우는 용도이므로 "
+                    + "응답이 수정 요청의 본문과 같은 모양이며, 다른 참가자 조회에는 없는 공개 여부(visibility)가 포함됩니다. "
+                    + "그룹 진행 상태와 무관하게 호출할 수 있습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = MyProfileResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아님",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """)))
+    })
+    @GetMapping("/{groupId}/participants/me")
+    ResponseEntity<MyProfileResponse> getMyProfile(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 
