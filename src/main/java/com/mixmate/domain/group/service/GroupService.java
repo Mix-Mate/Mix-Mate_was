@@ -100,4 +100,22 @@ public class GroupService {
         }
         group.startVoting();
     }
+
+    @Transactional
+    public void startSecondRound(Long groupId, Long userId) {
+        Group group = groupMembership.getHost(groupId, userId).getGroup();
+        if (group.getStatus() != GroupStatus.VOTE_CLOSED) {
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "투표가 종료된 뒤에만 2차를 진행할 수 있습니다.");
+        }
+        group.startSecondRound();
+    }
+
+    @Transactional
+    public void finishGroup(Long groupId, Long userId) {
+        Group group = groupMembership.getHost(groupId, userId).getGroup();
+        if (!group.getStatus().canFinish()) {
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "투표 종료 후 또는 2차 진행 중에만 모임을 종료할 수 있습니다.");
+        }
+        group.finish();
+    }
 }

@@ -175,4 +175,72 @@ public interface GroupApi {
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
+
+    @Operation(summary = "2차 술자리 진행",
+            description = "투표가 종료된 뒤 관리자가 2차 진행을 결정합니다. "
+                    + "그룹 상태가 BEFORE_SECOND_ASSIGNMENT로 바뀌어 2차 조 편성을 할 수 있게 됩니다. "
+                    + "2차에는 투표가 없습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "2차 진행 결정 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "투표 종료 상태가 아님",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "INVALID_GROUP_STATUS", "message": "투표가 종료된 뒤에만 2차를 진행할 수 있습니다." }
+                            """)))
+    })
+    @PostMapping("/{groupId}/second-round")
+    ResponseEntity<Void> startSecondRound(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "모임 종료",
+            description = "관리자가 모임을 종료합니다. 그룹 상태가 FINISHED가 되며 되돌릴 수 없습니다. "
+                    + "투표 종료 직후(2차를 하지 않기로 한 경우)와 2차 진행 중에만 호출할 수 있고, "
+                    + "2차를 하기로 한 뒤에는 조 편성을 마쳐야 종료할 수 있습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "모임 종료 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "종료할 수 있는 상태가 아님(2차 조 편성 대기 중이거나 이미 종료됨 포함)",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "INVALID_GROUP_STATUS", "message": "투표 종료 후 또는 2차 진행 중에만 모임을 종료할 수 있습니다." }
+                            """)))
+    })
+    @PostMapping("/{groupId}/finish")
+    ResponseEntity<Void> finishGroup(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
 }

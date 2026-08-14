@@ -52,9 +52,19 @@ public class Group {
         this.status = GroupStatus.VOTING;
     }
 
-    // 관리자가 투표를 종료하면 조 편성 대기 상태로
+    // 관리자가 투표를 종료하면 투표마감 상태로
     public void finishVoting() {
+        this.status = GroupStatus.VOTE_CLOSED;
+    }
+
+    // 2차를 진행하기로 결정하면 2차 조 편성 대기 상태로
+    public void startSecondRound() {
         this.status = GroupStatus.BEFORE_SECOND_ASSIGNMENT;
+    }
+
+    // 모임을 종료하면 최종 상태로. 되돌릴 수 없다
+    public void finish() {
+        this.status = GroupStatus.FINISHED;
     }
 
     private Group(String groupName, String description, GroupStatus status, String inviteCode) {
