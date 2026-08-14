@@ -2,6 +2,7 @@ package com.mixmate.domain.participant.controller;
 
 import com.mixmate.domain.participant.api.ParticipantApi;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
+import com.mixmate.domain.participant.dto.response.MyProfileResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
 import com.mixmate.domain.participant.enums.Round;
@@ -50,6 +51,13 @@ public class ParticipantController implements ParticipantApi {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(participantService.getParticipantProfile(groupId, participantId, userDetails.getUserId()));
+    }
+
+    public ResponseEntity<MyProfileResponse> getMyProfile(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(participantService.getMyProfile(groupId, userDetails.getUserId()));
     }
 
     /**

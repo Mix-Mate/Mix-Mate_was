@@ -3,6 +3,7 @@ package com.mixmate.domain.participant.service;
 import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.enums.GroupStatus;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
+import com.mixmate.domain.participant.dto.response.MyProfileResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
 import com.mixmate.domain.participant.dto.ParticipantSummary;
@@ -78,6 +79,12 @@ public class ParticipantService {
         }
 
         return ParticipantProfileResponse.from(participant);
+    }
+
+    @Transactional(readOnly = true)
+    public MyProfileResponse getMyProfile(Long groupId, Long userId) {
+        Participant me = groupMembership.getMember(groupId, userId);
+        return MyProfileResponse.from(me);
     }
 
     @Transactional
