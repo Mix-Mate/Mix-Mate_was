@@ -94,4 +94,20 @@ public class GroupController implements GroupApi {
         groupService.finishFirstRound(groupId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
+
+    public ResponseEntity<Void> startSecondRound(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        groupService.startSecondRound(groupId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+    public ResponseEntity<Void> finishGroup(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        groupService.finishGroup(groupId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
 }
