@@ -95,6 +95,12 @@ public class GroupController implements GroupApi {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 투표가 끝난 뒤 2차 진행을 결정합니다.
+     * @param groupId 요청 그룹 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 본문 없는 204
+     */
     public ResponseEntity<Void> startSecondRound(
             @PathVariable Long groupId,
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -103,6 +109,12 @@ public class GroupController implements GroupApi {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 모임을 종료합니다. 되돌릴 수 없습니다.
+     * @param groupId 종료할 그룹 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 본문 없는 204
+     */
     public ResponseEntity<Void> finishGroup(
             @PathVariable Long groupId,
             @AuthenticationPrincipal CustomUserDetails userDetails
