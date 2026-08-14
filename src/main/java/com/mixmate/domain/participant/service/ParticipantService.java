@@ -81,12 +81,20 @@ public class ParticipantService {
         return ParticipantProfileResponse.from(participant);
     }
 
+    /**
+     * 요청자 본인의 그룹 프로필을 조회합니다. 수정 화면에 기존 값을 채우는 용도라
+     * 수정 요청과 같은 필드를 내려주며, 다른 참가자 조회에는 없는 공개 여부도 포함됩니다.
+     */
     @Transactional(readOnly = true)
     public MyProfileResponse getMyProfile(Long groupId, Long userId) {
         Participant me = groupMembership.getMember(groupId, userId);
         return MyProfileResponse.from(me);
     }
 
+    /**
+     * 요청자 본인의 그룹 프로필을 수정합니다. 프로필은 조 편성 조건으로 쓰이므로
+     * 조 편성 이전에만 수정할 수 있고, 전체 교체이므로 보내지 않은 선택 항목은 지워집니다.
+     */
     @Transactional
     public void updateParticipantProfile(ParticipantProfileRequest dto, Long groupId, Long userId) {
         Participant me = groupMembership.getMember(groupId, userId);

@@ -53,6 +53,12 @@ public class ParticipantController implements ParticipantApi {
         return ResponseEntity.ok(participantService.getParticipantProfile(groupId, participantId, userDetails.getUserId()));
     }
 
+    /**
+     * 요청자 본인의 그룹 프로필을 조회합니다.
+     * @param groupId 조회할 그룹 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 수정 요청과 같은 모양의 내 프로필
+     */
     public ResponseEntity<MyProfileResponse> getMyProfile(
             @PathVariable Long groupId,
             @AuthenticationPrincipal CustomUserDetails userDetails
