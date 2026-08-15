@@ -63,7 +63,7 @@ public class Group {
     }
 
     // 2차를 진행하기로 결정하면 2차 조 편성 대기 상태로
-    public void startSecondRound() {
+    public void decideSecondRound() {
         this.status = GroupStatus.BEFORE_SECOND_ROUND;
     }
 

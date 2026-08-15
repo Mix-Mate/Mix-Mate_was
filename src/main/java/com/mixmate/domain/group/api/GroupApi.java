@@ -239,7 +239,7 @@ public interface GroupApi {
                             """)))
     })
     @PostMapping("/{groupId}/second-round")
-    ResponseEntity<Void> startSecondRound(
+    ResponseEntity<Void> decideSecondRound(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );

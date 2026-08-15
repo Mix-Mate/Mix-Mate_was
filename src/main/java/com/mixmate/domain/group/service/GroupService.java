@@ -113,13 +113,13 @@ public class GroupService {
     }
 
     @Transactional
-    public void startSecondRound(Long groupId, Long userId) {
+    public void decideSecondRound(Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
         if (group.getStatus() == GroupStatus.BEFORE_SECOND_ROUND) return;
         if (group.getStatus() != GroupStatus.VOTE_CLOSED) {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "투표가 종료된 뒤에만 2차를 진행할 수 있습니다.");
         }
-        group.startSecondRound();
+        group.decideSecondRound();
     }
 
     @Transactional
