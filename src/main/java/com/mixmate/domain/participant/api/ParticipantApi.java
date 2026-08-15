@@ -134,8 +134,8 @@ public interface ParticipantApi {
     );
 
     @Operation(summary = "내 프로필 수정",
-            description = "요청자 본인의 그룹 프로필을 수정합니다. 프로필은 조 편성 조건으로 쓰이므로 "
-                    + "조 편성 전에만 수정할 수 있습니다. "
+            description = "요청자 본인의 그룹 프로필을 수정합니다. 참가자 모집 중에만 가능하며, "
+                    + "모집을 마감하면 수정할 수 없습니다. "
                     + "PUT이므로 전체 교체이며, age·instaId·bio를 보내지 않으면 null로 지워집니다. "
                     + "수정 대상은 이 그룹의 프로필뿐이며, 다른 그룹의 프로필에는 영향이 없습니다.")
     @ApiResponses({
@@ -156,7 +156,7 @@ public interface ParticipantApi {
                             """))),
             @ApiResponse(responseCode = "409", description = "이미 조 편성이 끝난 그룹",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 프로필 수정이 가능합니다." }
+                                { "code": "INVALID_GROUP_STATUS", "message": "참가자 모집 중에만 프로필 수정이 가능합니다." }
                             """)))
     })
     @PutMapping("/{groupId}/participants/me")
@@ -168,7 +168,7 @@ public interface ParticipantApi {
 
     @Operation(summary = "그룹 탈퇴",
             description = "요청자 본인의 참가 정보를 삭제해 그룹에서 나갑니다. "
-                    + "조 편성 이후에는 명단이 고정되므로 조 편성 전에만 가능하며, "
+                    + "모집을 마감하면 명단에서 빠질 수 없으므로 모집 중에만 가능하며, "
                     + "관리자는 탈퇴할 수 없고 그룹 삭제만 가능합니다. "
                     + "다른 참가자를 내보내는 것은 관리자용 참가자 삭제 API를 사용합니다.")
     @ApiResponses({
@@ -193,7 +193,7 @@ public interface ParticipantApi {
                             """))),
             @ApiResponse(responseCode = "409", description = "이미 조 편성이 끝난 그룹",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 탈퇴할 수 있습니다." }
+                                { "code": "INVALID_GROUP_STATUS", "message": "참가자 모집 중에만 탈퇴할 수 있습니다." }
                             """)))
     })
     @DeleteMapping("/{groupId}/participants/me")
@@ -204,7 +204,7 @@ public interface ParticipantApi {
 
     @Operation(summary = "참가자 삭제",
             description = "관리자가 다른 참가자를 그룹에서 내보냅니다. "
-                    + "조 편성 이후에는 명단이 고정되므로 조 편성 전에만 가능하며, "
+                    + "1차가 시작되면 명단이 고정되므로 그 전에만 가능하며, 모집 마감 이후에도 할 수 있습니다. "
                     + "관리자 본인은 대상으로 지정할 수 없습니다. 그룹을 정리하려면 그룹 삭제를 사용합니다. "
                     + "대리 등록된 오프라인 참가자도 같은 방식으로 삭제됩니다.")
     @ApiResponses({
@@ -237,7 +237,7 @@ public interface ParticipantApi {
                     })),
             @ApiResponse(responseCode = "409", description = "이미 조 편성이 끝난 그룹",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 참가자를 삭제할 수 있습니다." }
+                                { "code": "INVALID_GROUP_STATUS", "message": "1차 진행 이전에만 참가자를 삭제할 수 있습니다." }
                             """)))
     })
     @DeleteMapping("/{groupId}/participants/{participantId}")
@@ -249,7 +249,7 @@ public interface ParticipantApi {
 
     @Operation(summary = "참가자 추가",
             description = "관리자가 로그인 계정이 없는 오프라인 참가자를 대신 등록합니다. "
-                    + "조 편성 이후에는 명단이 고정되므로 조 편성 전에만 가능합니다. "
+                    + "1차가 시작되면 명단이 고정되므로 그 전에만 가능하며, 모집 마감 이후에도 할 수 있습니다. "
                     + "이렇게 추가된 참가자는 계정과 연결되지 않아 본인이 프로필을 수정할 수 없으므로, "
                     + "잘못 입력했다면 삭제 후 다시 추가합니다.")
     @ApiResponses({
@@ -276,7 +276,7 @@ public interface ParticipantApi {
                             """))),
             @ApiResponse(responseCode = "409", description = "이미 조 편성이 끝난 그룹",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 참가자를 추가할 수 있습니다." }
+                                { "code": "INVALID_GROUP_STATUS", "message": "1차 진행 이전에만 참가자를 추가할 수 있습니다." }
                             """)))
     })
     @PostMapping("/{groupId}/participants")

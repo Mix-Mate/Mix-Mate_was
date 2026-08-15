@@ -75,7 +75,7 @@ public interface GroupApi {
     );
 
     @Operation(summary = "그룹 정보 수정",
-            description = "관리자가 조 편성 전에 그룹명과 설명을 수정합니다. "
+            description = "관리자가 참가자 모집 중에 그룹명과 설명을 수정합니다. 모집을 마감하면 수정할 수 없습니다. "
                     + "PUT이므로 전체 교체이며, description을 보내지 않으면 null로 지워집니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "그룹 수정 성공"),
@@ -98,9 +98,9 @@ public interface GroupApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
-            @ApiResponse(responseCode = "409", description = "조 편성 이후",
+            @ApiResponse(responseCode = "409", description = "모집 마감 이후",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 수정할 수 있습니다." }
+                                { "code": "INVALID_GROUP_STATUS", "message": "참가자 모집 중에만 수정할 수 있습니다." }
                             """)))
     })
     @PutMapping("/{groupId}")
@@ -111,7 +111,7 @@ public interface GroupApi {
     );
 
     @Operation(summary = "그룹 삭제",
-            description = "관리자가 조 편성 전 그룹을 삭제합니다. 참가자 정보도 함께 삭제되며 되돌릴 수 없습니다. "
+            description = "관리자가 참가자 모집 중에 그룹을 삭제합니다. 모집을 마감하면 삭제할 수 없습니다. 참가자 정보도 함께 삭제되며 되돌릴 수 없습니다. "
                     + "참가자의 계정 자체는 삭제되지 않습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "그룹 삭제 성공"),
@@ -132,13 +132,47 @@ public interface GroupApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
-            @ApiResponse(responseCode = "409", description = "조 편성 이후",
+            @ApiResponse(responseCode = "409", description = "모집 마감 이후",
                     content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "조 편성 이전에만 삭제할 수 있습니다." }
+                                { "code": "INVALID_GROUP_STATUS", "message": "참가자 모집 중에만 삭제할 수 있습니다." }
                             """)))
     })
     @DeleteMapping("/{groupId}")
     ResponseEntity<Void> deleteGroup(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "참가자 모집 마감",
+            description = "관리자가 참가자 모집을 마감합니다. 그룹 상태가 BEFORE_FIRST_ROUND로 바뀌며 "
+                    + "이후로는 초대코드로 입장할 수 없고, 참가자 본인의 탈퇴와 그룹 삭제·수정도 막힙니다. "
+                    + "관리자의 참가자 추가·삭제는 계속 가능합니다. 되돌릴 수 없습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "모집 마감 성공. 이미 마감된 그룹에 다시 호출해도 204입니다."),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "모집 중이 아님(이미 조 편성 이후 단계)",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "INVALID_GROUP_STATUS", "message": "참가자 모집 중에만 마감할 수 있습니다." }
+                            """)))
+    })
+    @PostMapping("/{groupId}/close-recruiting")
+    ResponseEntity<Void> closeRecruiting(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
@@ -178,7 +212,7 @@ public interface GroupApi {
 
     @Operation(summary = "2차 술자리 진행",
             description = "투표가 종료된 뒤 관리자가 2차 진행을 결정합니다. "
-                    + "그룹 상태가 BEFORE_SECOND_ASSIGNMENT로 바뀌어 2차 조 편성을 할 수 있게 됩니다. "
+                    + "그룹 상태가 BEFORE_SECOND_ROUND로 바뀌어 2차 조 편성을 할 수 있게 됩니다. "
                     + "2차에는 투표가 없습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "2차 진행 결정 성공. 이미 2차 조 편성 대기 중인 그룹에 다시 호출해도 204입니다."),
