@@ -145,8 +145,7 @@ public class VoteService {
         Participant me = groupMembership.getMember(groupId, userId);
         Group group = me.getGroup();
 
-        GroupStatus status = group.getStatus();
-        if (status == GroupStatus.BEFORE_FIRST_ASSIGNMENT || status == GroupStatus.FIRST_ROUND || status == GroupStatus.VOTING)
+        if (!group.getStatus().isVoteFinished())
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "투표가 아직 종료되지 않았습니다.");
 
         Map<Long, List<MvpVote>> votesByTargetId = mvpVoteRepository.findByTarget_Group(group).stream()

@@ -39,12 +39,17 @@ public class Group {
     private LocalDateTime createdAt;
 
     public static Group create(String groupName, String description, String inviteCode) {
-        return new Group(groupName, description, GroupStatus.BEFORE_FIRST_ASSIGNMENT, inviteCode);
+        return new Group(groupName, description, GroupStatus.RECRUITING, inviteCode);
     }
 
     public void updateInfo(String groupName, String description) {
         this.groupName = groupName;
         this.description = description;
+    }
+
+    // 참가자 모집 마감
+    public void closeRecruiting() {
+        this.status = GroupStatus.BEFORE_FIRST_ROUND;
     }
 
     // 1차 종료하면 투표 상태로
@@ -59,7 +64,7 @@ public class Group {
 
     // 2차를 진행하기로 결정하면 2차 조 편성 대기 상태로
     public void startSecondRound() {
-        this.status = GroupStatus.BEFORE_SECOND_ASSIGNMENT;
+        this.status = GroupStatus.BEFORE_SECOND_ROUND;
     }
 
     // 모임을 종료하면 최종 상태로. 되돌릴 수 없다

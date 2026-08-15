@@ -20,7 +20,7 @@ public class HomeGroupSummaryResDto {
     @Schema(example = "2026 SW 동아리 MT")
     private final String groupName;
 
-    @Schema(description = "그룹 진행 상태", example = "BEFORE_FIRST_ASSIGNMENT")
+    @Schema(description = "그룹 진행 상태", example = "RECRUITING")
     private final GroupStatus status;
 
     @Schema(description = "이 그룹의 전체 참여 인원수", example = "12")

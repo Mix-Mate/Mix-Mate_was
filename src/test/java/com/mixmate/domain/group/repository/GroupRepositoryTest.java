@@ -45,7 +45,7 @@ class GroupRepositoryTest {
         em.flush();
 
         assertThat(saved.getGroupId()).isNotNull();
-        assertThat(saved.getStatus()).isEqualTo(GroupStatus.BEFORE_FIRST_ASSIGNMENT);
+        assertThat(saved.getStatus()).isEqualTo(GroupStatus.RECRUITING);
         assertThat(saved.getCreatedAt()).isNotNull();   // JPA Auditing 동작 확인
     }
 
@@ -82,6 +82,6 @@ class GroupRepositoryTest {
                         "select status from event_group where invite_code = 'STR12345'")
                 .getSingleResult();
 
-        assertThat(status).isEqualTo("BEFORE_FIRST_ASSIGNMENT");
+        assertThat(status).isEqualTo("RECRUITING");
     }
 }
