@@ -1,6 +1,7 @@
 package com.mixmate.domain.group.entity;
 
 import com.mixmate.domain.group.enums.GroupStatus;
+import com.mixmate.domain.participant.enums.Round;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -50,6 +51,14 @@ public class Group {
     // 참가자 모집 마감
     public void closeRecruiting() {
         this.status = GroupStatus.BEFORE_FIRST_ROUND;
+    }
+
+    // 조 편성 후 N차 시작 (진행 중으로 전이)
+    public void startRound(Round round) {
+        this.status = switch (round) {
+            case FIRST_ROUND -> GroupStatus.FIRST_ROUND;
+            case SECOND_ROUND -> GroupStatus.SECOND_ROUND;
+        };
     }
 
     // 1차 종료하면 투표 상태로
