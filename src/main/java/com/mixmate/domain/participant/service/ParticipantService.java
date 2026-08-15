@@ -42,7 +42,7 @@ public class ParticipantService {
 
         if (round == Round.SECOND_ROUND && !group.getStatus().isSecondRoundAssigned())
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "2차 진행 상태에서만 조회할 수 있습니다.");
-        if (me.getRole() != Role.HOST && group.getStatus() == GroupStatus.BEFORE_FIRST_ASSIGNMENT)
+        if (me.getRole() != Role.HOST && group.getStatus().isBeforeFirstAssignment())
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성이 완료된 이후에 조회할 수 있습니다.");
 
         List<Participant> participants = (round == Round.FIRST_ROUND)
@@ -83,28 +83,28 @@ public class ParticipantService {
 
     /**
      * 요청자 본인의 그룹 프로필을 수정합니다. 프로필은 조 편성 조건으로 쓰이므로
-     * 조 편성 이전에만 수정할 수 있고, 전체 교체이므로 보내지 않은 선택 항목은 지워집니다.
+     * 참가자 모집 중에만 수정할 수 있고, 전체 교체이므로 보내지 않은 선택 항목은 지워집니다.
      */
     @Transactional
     public void updateParticipantProfile(ParticipantProfileRequest dto, Long groupId, Long userId) {
         Participant me = groupMembership.getMember(groupId, userId);
 
-        if (me.getGroup().getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT)
-            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 프로필 수정이 가능합니다.");
+        if (me.getGroup().getStatus() != GroupStatus.RECRUITING)
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "참가자 모집 중에만 프로필 수정이 가능합니다.");
 
         me.updateProfile(dto.toEntity());
     }
 
     /**
-     * 일반 참가자가 조 편성 이전에 스스로 그룹을 탈퇴합니다. 관리자(HOST)는 탈퇴할 수 없고,
+     * 일반 참가자가 그룹이 참가자 모집 중일 때 스스로 그룹을 탈퇴합니다. 관리자(HOST)는 탈퇴할 수 없고,
      * 그룹 자체를 삭제해야 합니다.
      */
     @Transactional
     public void leaveGroup(Long groupId, Long userId) {
         Participant participant = groupMembership.getMember(groupId, userId);
 
-        if (participant.getGroup().getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT)
-            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 탈퇴할 수 있습니다.");
+        if (participant.getGroup().getStatus() != GroupStatus.RECRUITING)
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "참가자 모집 중에만 탈퇴할 수 있습니다.");
         if (participant.getRole() == Role.HOST)
             throw new CustomException(ErrorCode.FORBIDDEN, "관리자는 탈퇴할 수 없습니다. 그룹을 삭제해 주세요.");
 
@@ -112,14 +112,14 @@ public class ParticipantService {
     }
 
     /**
-     * 관리자(HOST)가 조 편성 이전에 다른 참가자를 그룹에서 삭제합니다.
+     * 관리자(HOST)가 1차 진행 이전에 다른 참가자를 그룹에서 삭제합니다.
      */
     @Transactional
     public void deleteParticipant(Long groupId, Long targetParticipantId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
 
-        if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT)
-            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 참가자를 삭제할 수 있습니다.");
+        if (!group.getStatus().isBeforeFirstAssignment())
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "1차 진행 이전에만 참가자를 삭제할 수 있습니다.");
 
         Participant targetParticipant = participantRepository.findByParticipantIdAndGroup(targetParticipantId, group)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "삭제대상을 찾을 수 없습니다."));
@@ -136,8 +136,8 @@ public class ParticipantService {
     public Long addParticipant(ParticipantProfileRequest dto, Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
 
-        if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT)
-            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 참가자를 추가할 수 있습니다.");
+        if (!group.getStatus().isBeforeFirstAssignment())
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "1차 진행 이전에만 참가자를 추가할 수 있습니다.");
 
         Participant addedParticipant = Participant.addByHost(group, dto.toEntity());
         participantRepository.save(addedParticipant);

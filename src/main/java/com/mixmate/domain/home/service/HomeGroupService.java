@@ -50,7 +50,7 @@ public class HomeGroupService {
 
     /**
      * 참여코드와 프로필을 함께 받아 그룹에 일반 참가자(PARTICIPANT)로 입장시킵니다.
-     * 조 편성이 이미 시작됐거나(BEFORE_FIRST_ASSIGNMENT가 아님) 이미 참여중이면 거부합니다.
+     * 모집이 마감됐거나(RECRUITING이 아님) 이미 참여중이면 거부합니다.
      *
      * @param dto 참여코드와 본인 프로필
      * @param userId 입장하는 사용자 식별자
@@ -62,7 +62,7 @@ public class HomeGroupService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         Group group = findValidGroupByInviteCode(dto.getInviteCode());
 
-        if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT) {
+        if (group.getStatus() != GroupStatus.RECRUITING) {
             throw new CustomException(ErrorCode.GROUP_LOCKED);
         }
         if (participantRepository.existsByGroupAndUser(group, user)) {

@@ -67,8 +67,8 @@ public class GroupService {
     @Transactional
     public void updateGroup(GroupUpdateRequest dto, Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
-        if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT) {
-            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 수정할 수 있습니다.");
+        if (group.getStatus() != GroupStatus.RECRUITING) {
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "참가자 모집 중에만 수정할 수 있습니다.");
         }
         group.updateInfo(dto.groupName(), dto.description());
     }
@@ -79,8 +79,8 @@ public class GroupService {
     @Transactional
     public void deleteGroup(Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
-        if (group.getStatus() != GroupStatus.BEFORE_FIRST_ASSIGNMENT) {
-            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 이전에만 삭제할 수 있습니다.");
+        if (group.getStatus() != GroupStatus.RECRUITING) {
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "참가자 모집 중에만 삭제할 수 있습니다.");
         }
         participantRepository.deleteAllByGroup(group);
         groupRepository.delete(group);
@@ -90,6 +90,16 @@ public class GroupService {
     public GroupDetailResponse getGroupDetail(Long groupId, Long userId) {
         Participant me = groupMembership.getMember(groupId, userId);
         return GroupDetailResponse.from(me, participantRepository.countByGroup(me.getGroup()));
+    }
+
+    @Transactional
+    public void closeRecruiting(Long groupId, Long userId) {
+        Group group = groupMembership.getHost(groupId, userId).getGroup();
+        if (group.getStatus() == GroupStatus.BEFORE_FIRST_ROUND) return;
+        if (group.getStatus() != GroupStatus.RECRUITING) {
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "참가자 모집 중에만 마감할 수 있습니다.");
+        }
+        group.closeRecruiting();
     }
 
     @Transactional
@@ -105,7 +115,7 @@ public class GroupService {
     @Transactional
     public void startSecondRound(Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
-        if (group.getStatus() == GroupStatus.BEFORE_SECOND_ASSIGNMENT) return;
+        if (group.getStatus() == GroupStatus.BEFORE_SECOND_ROUND) return;
         if (group.getStatus() != GroupStatus.VOTE_CLOSED) {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "투표가 종료된 뒤에만 2차를 진행할 수 있습니다.");
         }

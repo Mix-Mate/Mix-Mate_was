@@ -1,13 +1,27 @@
 package com.mixmate.domain.group.enums;
 
 public enum GroupStatus {
-    BEFORE_FIRST_ASSIGNMENT, FIRST_ROUND, VOTING, VOTE_CLOSED,
-    BEFORE_SECOND_ASSIGNMENT, SECOND_ROUND, FINISHED;
+    RECRUITING, BEFORE_FIRST_ROUND, FIRST_ROUND, VOTING, VOTE_CLOSED,
+    BEFORE_SECOND_ROUND, SECOND_ROUND, FINISHED;
 
     public boolean isSecondRoundAssigned() {
         return switch (this) {
-            case BEFORE_SECOND_ASSIGNMENT, SECOND_ROUND, FINISHED -> true;
-            case BEFORE_FIRST_ASSIGNMENT, FIRST_ROUND, VOTING, VOTE_CLOSED -> false;
+            case BEFORE_SECOND_ROUND, SECOND_ROUND, FINISHED -> true;
+            case RECRUITING, BEFORE_FIRST_ROUND, FIRST_ROUND, VOTING, VOTE_CLOSED -> false;
+        };
+    }
+
+    public boolean isBeforeFirstAssignment() {
+        return switch (this) {
+            case RECRUITING, BEFORE_FIRST_ROUND -> true;
+            case FIRST_ROUND, VOTING, VOTE_CLOSED, BEFORE_SECOND_ROUND, SECOND_ROUND, FINISHED -> false;
+        };
+    }
+
+    public boolean isVoteFinished() {
+        return switch (this) {
+            case VOTE_CLOSED, BEFORE_SECOND_ROUND, SECOND_ROUND, FINISHED -> true;
+            case RECRUITING, BEFORE_FIRST_ROUND, FIRST_ROUND, VOTING -> false;
         };
     }
 
@@ -15,7 +29,7 @@ public enum GroupStatus {
     public boolean canFinish() {
         return switch (this) {
             case VOTE_CLOSED, SECOND_ROUND -> true;
-            case BEFORE_FIRST_ASSIGNMENT, FIRST_ROUND, VOTING, BEFORE_SECOND_ASSIGNMENT, FINISHED -> false;
+            case RECRUITING, BEFORE_FIRST_ROUND, FIRST_ROUND, VOTING, BEFORE_SECOND_ROUND, FINISHED -> false;
         };
     }
 }
