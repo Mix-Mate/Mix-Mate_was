@@ -46,8 +46,6 @@ public interface AssignmentApi {
                             examples = @ExampleObject(value = """
                                     {
                                       "round": "FIRST_ROUND",
-                                      "teamCount": 2,
-                                      "conditions": ["GENDER_BALANCE", "MAJOR_SPREAD"],
                                       "teams": [
                                         {
                                           "teamNumber": 1,
@@ -176,8 +174,6 @@ public interface AssignmentApi {
                             examples = @ExampleObject(value = """
                                     {
                                       "round": "FIRST_ROUND",
-                                      "teamCount": 2,
-                                      "conditions": ["GENDER_BALANCE", "MAJOR_SPREAD"],
                                       "teams": [
                                         {
                                           "teamNumber": 1,

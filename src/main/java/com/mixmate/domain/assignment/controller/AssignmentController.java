@@ -54,13 +54,6 @@ public class AssignmentController implements AssignmentApi {
     }
 
     /**
-     * 참가자가 해당 차수에서 자신이 배정된 조와 조원을 조회합니다. 편성이 확정된 뒤에만 가능합니다.
-     * @param groupId 조회할 그룹 식별자
-     * @param round 조회할 차수
-     * @param userDetails 로그인한 사용자의 인증 정보
-     * @return 내 조 번호와 조원 목록, 200
-     */
-    /**
      * 해당 차수의 조 편성 전체를 조회합니다. 편성이 확정된 뒤에만 가능합니다.
      * @param groupId 조회할 그룹 식별자
      * @param round 조회할 차수
@@ -75,6 +68,13 @@ public class AssignmentController implements AssignmentApi {
         return ResponseEntity.ok(assignmentService.getTeams(round, groupId, userDetails.getUserId()));
     }
 
+    /**
+     * 참가자가 해당 차수에서 자신이 배정된 조와 조원을 조회합니다. 편성이 확정된 뒤에만 가능합니다.
+     * @param groupId 조회할 그룹 식별자
+     * @param round 조회할 차수
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 내 조 번호와 조원 목록, 200
+     */
     public ResponseEntity<MyTeamResponse> getMyTeam(
             @PathVariable Long groupId,
             @PathVariable Round round,
