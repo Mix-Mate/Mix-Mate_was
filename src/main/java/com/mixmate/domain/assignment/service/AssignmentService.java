@@ -27,6 +27,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * 라운드별 조 편성의 실행과 확정을 관리자(HOST) 권한 기준으로 처리하는 서비스입니다.
+ *
+ * 배치를 만드는 것과 확정하는 것이 나뉘어 있습니다. 실행은 결과를 저장만 하고,
+ * 확정이 그룹 상태를 다음 라운드로 넘깁니다. 확정 여부를 따로 저장하지 않고 그룹 상태로 판단합니다.
+ *
+ * 실제 배치 계산은 TeamAssigner가 담당하며, 이 클래스는 검증과 저장만 맡습니다.
+ */
 @Service
 @RequiredArgsConstructor
 public class AssignmentService {
@@ -37,6 +45,10 @@ public class AssignmentService {
     private final GroupMembership groupMembership;
     private final TeamAssigner teamAssigner;
 
+    /**
+     * 관리자가 조 편성을 실행합니다. 1차는 참가자 전원이, 2차는 2차 참여를 선택한 인원만 대상입니다.
+     * 재실행(재셔플)은 아직 없어 같은 라운드에 두 번 호출할 수 없습니다.
+     */
     @Transactional
     public TeamAssignmentResponse generate(TeamGenerateRequest dto, Round round, Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
@@ -84,6 +96,10 @@ public class AssignmentService {
         return new TeamAssignmentResponse(round, dto.teamCount(), dto.conditions(), teamDetails);
     }
 
+    /**
+     * 관리자가 편성 결과를 확정해 해당 라운드를 시작합니다. 되돌릴 수 없습니다.
+     * 이미 그 라운드가 시작된 그룹에 다시 호출하면 아무 일도 하지 않고 성공으로 응답합니다.
+     */
     @Transactional
     public void confirm(Round round, Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();

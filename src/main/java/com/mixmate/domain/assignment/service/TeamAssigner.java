@@ -14,6 +14,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
+/**
+ * 참가자를 조에 나누는 계산만 담당합니다. 저장도 검증도 하지 않아 스프링 없이 단위 테스트할 수 있습니다.
+ *
+ * 방식은 그리디입니다. 참가자를 한 명씩 꺼내 "이 조에 넣으면 얼마나 나빠지는지"를 벌점으로 재고
+ * 가장 낮은 조에 넣습니다. 벌점은 켜진 조건마다 그 조에 이미 있는 같은 부류의 수를 더한 값입니다.
+ *
+ * 완전한 최적해(NP-hard)가 아니라 근사값이며, 참가자 순서를 섞기 때문에 같은 입력이라도 실행할 때마다 결과가 달라집니다.
+ */
 @Component
 public class TeamAssigner {
 
