@@ -19,11 +19,18 @@ import java.util.function.Function;
  *
  * 방식은 그리디입니다. 참가자를 한 명씩 꺼내 "이 조에 넣으면 얼마나 나빠지는지"를 벌점으로 재고
  * 가장 낮은 조에 넣습니다. 벌점은 켜진 조건마다 그 조에 이미 있는 같은 부류의 수를 더한 값입니다.
+ * 벌점이 같으면 인원이 적은 조로 보내므로 조건과 무관하게 인원은 항상 고르게 나뉩니다.
+ *
+ * 한 번의 그리디는 참가자를 꺼내는 순서에 좌우되어 운이 나쁘면 나쁜 편성이 그대로 나옵니다.
+ * 그래서 여러 번 돌린 뒤 가장 나은 하나를 고릅니다.
  *
  * 완전한 최적해(NP-hard)가 아니라 근사값이며, 참가자 순서를 섞기 때문에 같은 입력이라도 실행할 때마다 결과가 달라집니다.
  */
 @Component
 public class TeamAssigner {
+
+    /** 그리디를 돌리는 횟수. 참가자가 백 명 안쪽이라 스무 번을 돌려도 비용은 무시할 수 있다. */
+    private static final int ATTEMPTS = 20;
 
     // 조건별로 "이 값이 같으면 같은 부류"를 정하는 기준.
     // SIZE_BALANCE는 부류를 세는 조건이 아니라 동점 처리 규칙이라 여기 없다.
@@ -43,6 +50,31 @@ public class TeamAssigner {
                                                   int teamCount,
                                                   Set<AssignmentCondition> conditions,
                                                   Map<Long, Integer> fixedMembers) {
+
+        Map<Integer, List<Participant>> best = null;
+        int bestGap = Integer.MAX_VALUE;
+        int bestPenalty = Integer.MAX_VALUE;
+
+        for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
+            Map<Integer, List<Participant>> candidate = assignOnce(participants, teamCount, conditions, fixedMembers);
+            int gap = sizeGap(candidate);
+            int penalty = totalPenalty(candidate, conditions);
+
+            // 인원 균등이 먼저다. 인원 분포가 같을 때에 한해 조건을 더 잘 만족한 쪽을 고른다.
+            if (gap < bestGap || (gap == bestGap && penalty < bestPenalty)) {
+                best = candidate;
+                bestGap = gap;
+                bestPenalty = penalty;
+            }
+        }
+        return best;
+    }
+
+    // 그리디 한 번. 섞는 순서에 따라 매번 다른 편성이 나온다.
+    private Map<Integer, List<Participant>> assignOnce(List<Participant> participants,
+                                                       int teamCount,
+                                                       Set<AssignmentCondition> conditions,
+                                                       Map<Long, Integer> fixedMembers) {
 
         // 팀 초기화
         Map<Integer, List<Participant>> teams = new LinkedHashMap<>(teamCount);
@@ -70,17 +102,15 @@ public class TeamAssigner {
         return teams;
     }
 
-    // 벌점이 가장 낮은 조를 고른다. 동점이면 인원 수 균등이 켜져 있을 때만 인원이 적은 조.
+    // 벌점이 가장 낮은 조를 고른다. 동점이면 인원이 적은 조.
     private int bestTeam(Map<Integer, List<Participant>> teams,
                          Participant candidate,
                          Set<AssignmentCondition> conditions) {
 
-        // 조 순회 순서도 섞는다. 조건을 전부 끄면 모든 조의 벌점이 0이라
-        // 항상 1번부터 훑으면 전원이 1조로 몰린다.
+        // 조 순회 순서도 섞는다. 벌점도 인원도 같은 조가 여럿일 때 항상 앞 번호가 뽑히지 않게 한다.
         List<Integer> order = new ArrayList<>(teams.keySet());
         Collections.shuffle(order);
 
-        boolean sizeBalance = conditions.contains(AssignmentCondition.SIZE_BALANCE);
         int bestTeam = -1;
         int bestPenalty = Integer.MAX_VALUE;
         int bestSize = Integer.MAX_VALUE;
@@ -90,7 +120,7 @@ public class TeamAssigner {
             int penalty = penaltyOf(team, candidate, conditions);
             int size = team.size();
 
-            if (penalty < bestPenalty || (penalty == bestPenalty && sizeBalance && size < bestSize)) {
+            if (penalty < bestPenalty || (penalty == bestPenalty && size < bestSize)) {
                 bestTeam = teamNumber;
                 bestPenalty = penalty;
                 bestSize = size;
@@ -117,5 +147,24 @@ public class TeamAssigner {
             }
         }
         return penalty;
+    }
+
+    // 편성 전체의 벌점. 조마다 조원을 한 명씩 다시 넣어보며 같은 부류가 몇 쌍 겹쳤는지 센다.
+    private int totalPenalty(Map<Integer, List<Participant>> teams, Set<AssignmentCondition> conditions) {
+        int total = 0;
+        for (List<Participant> team : teams.values()) {
+            List<Participant> placed = new ArrayList<>(team.size());
+            for (Participant member : team) {
+                total += penaltyOf(placed, member, conditions);
+                placed.add(member);
+            }
+        }
+        return total;
+    }
+
+    // 가장 많은 조와 가장 적은 조의 인원 차이.
+    private int sizeGap(Map<Integer, List<Participant>> teams) {
+        var sizes = teams.values().stream().mapToInt(List::size).summaryStatistics();
+        return sizes.getMax() - sizes.getMin();
     }
 }
