@@ -27,6 +27,14 @@ public enum GroupStatus {
         };
     }
 
+    // 조 편성 확정으로 이 라운드가 이미 시작됐는지. 확정 API의 멱등 처리에 쓴다.
+    public boolean isRoundInProgress(Round round) {
+        return switch (round) {
+            case FIRST_ROUND -> this == FIRST_ROUND;
+            case SECOND_ROUND -> this == SECOND_ROUND;
+        };
+    }
+
     public boolean isVoteFinished() {
         return switch (this) {
             case VOTE_CLOSED, BEFORE_SECOND_ROUND, SECOND_ROUND, FINISHED -> true;
