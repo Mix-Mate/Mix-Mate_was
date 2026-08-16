@@ -64,7 +64,8 @@ public class AssignmentService {
                 ? participantRepository.findByGroup(group)
                 : participantRepository.findByGroupAndRoundParticipation(group, RoundParticipation.FIRST_AND_SECOND);
 
-        if (participants.size() < dto.teamCount()) {
+        // 한 명뿐인 조는 조가 아니므로 조당 두 명은 채울 수 있어야 한다
+        if (participants.size() < dto.teamCount() * 2) {
             throw new CustomException(ErrorCode.INSUFFICIENT_PARTICIPANTS);
         }
 
