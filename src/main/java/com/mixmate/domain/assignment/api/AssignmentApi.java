@@ -2,7 +2,7 @@ package com.mixmate.domain.assignment.api;
 
 import com.mixmate.domain.assignment.dto.request.TeamGenerateRequest;
 import com.mixmate.domain.assignment.dto.response.MyTeamResponse;
-import com.mixmate.domain.assignment.dto.response.TeamAssignmentResponse;
+import com.mixmate.domain.assignment.dto.response.TeamListResponse;
 import com.mixmate.domain.participant.enums.Round;
 import com.mixmate.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,7 +42,7 @@ public interface AssignmentApi {
                     확정한 뒤에는 다시 편성할 수 없습니다.""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "편성 성공. 조별 참가자 목록을 돌려줍니다. 재실행이어도 같은 형식입니다.",
-                    content = @Content(schema = @Schema(implementation = TeamAssignmentResponse.class),
+                    content = @Content(schema = @Schema(implementation = TeamListResponse.class),
                             examples = @ExampleObject(value = """
                                     {
                                       "round": "FIRST_ROUND",
@@ -115,7 +115,7 @@ public interface AssignmentApi {
                     }))
     })
     @PostMapping("/{groupId}/rounds/{round}/teams/generate")
-    ResponseEntity<TeamAssignmentResponse> generate(
+    ResponseEntity<TeamListResponse> generate(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(description = "편성할 차수", required = true) @PathVariable Round round,
             @Valid @RequestBody TeamGenerateRequest dto,
@@ -172,7 +172,7 @@ public interface AssignmentApi {
                     2차 참여를 선택하지 않은 참가자는 2차 편성을 볼 수 없습니다. 관리자는 참여하지 않더라도 조회할 수 있습니다.""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공. 조 번호 순으로 정렬된 조 목록을 돌려줍니다.",
-                    content = @Content(schema = @Schema(implementation = TeamAssignmentResponse.class),
+                    content = @Content(schema = @Schema(implementation = TeamListResponse.class),
                             examples = @ExampleObject(value = """
                                     {
                                       "round": "FIRST_ROUND",
@@ -232,7 +232,7 @@ public interface AssignmentApi {
                     }))
     })
     @GetMapping("/{groupId}/rounds/{round}/teams")
-    ResponseEntity<TeamAssignmentResponse> getTeams(
+    ResponseEntity<TeamListResponse> getTeams(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(description = "조회할 차수", required = true) @PathVariable Round round,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
