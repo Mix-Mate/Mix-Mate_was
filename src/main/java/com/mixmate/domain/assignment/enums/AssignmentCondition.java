@@ -6,6 +6,5 @@ public enum AssignmentCondition {
     GRADE_SPREAD,
     MAJOR_SPREAD,
     NEWCOMER_SPREAD,
-    POSITION_SPREAD,
-    SIZE_BALANCE
+    POSITION_SPREAD
 }

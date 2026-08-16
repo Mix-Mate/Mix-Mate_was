@@ -4,7 +4,7 @@ import com.mixmate.domain.assignment.dto.FixedMember;
 import com.mixmate.domain.assignment.dto.TeamDetail;
 import com.mixmate.domain.assignment.dto.request.TeamGenerateRequest;
 import com.mixmate.domain.assignment.dto.response.MyTeamResponse;
-import com.mixmate.domain.assignment.dto.response.TeamAssignmentResponse;
+import com.mixmate.domain.assignment.dto.response.TeamListResponse;
 import com.mixmate.domain.assignment.entity.GroupAssignment;
 import com.mixmate.domain.assignment.entity.TeamAssignmentMember;
 import com.mixmate.domain.assignment.repository.GroupAssignmentRepository;
@@ -52,7 +52,7 @@ public class AssignmentService {
      * 확정 전이면 몇 번이든 다시 실행할 수 있고, 그때마다 기존 편성 결과를 덮어씁니다.
      */
     @Transactional
-    public TeamAssignmentResponse generate(TeamGenerateRequest dto, Round round, Long groupId, Long userId) {
+    public TeamListResponse generate(TeamGenerateRequest dto, Round round, Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
 
         if (!group.getStatus().canAssign(round)) {
@@ -64,7 +64,8 @@ public class AssignmentService {
                 ? participantRepository.findByGroup(group)
                 : participantRepository.findByGroupAndRoundParticipation(group, RoundParticipation.FIRST_AND_SECOND);
 
-        if (participants.size() < dto.teamCount()) {
+        // 한 명뿐인 조는 조가 아니므로 조당 두 명은 채울 수 있어야 한다
+        if (participants.size() < dto.teamCount() * 2) {
             throw new CustomException(ErrorCode.INSUFFICIENT_PARTICIPANTS);
         }
 
@@ -99,7 +100,7 @@ public class AssignmentService {
                 .map(entry -> TeamDetail.of(entry.getKey(), entry.getValue()))
                 .toList();
 
-        return new TeamAssignmentResponse(round, dto.teamCount(), dto.conditions(), teamDetails);
+        return new TeamListResponse(round, teamDetails);
     }
 
     /**
@@ -128,7 +129,7 @@ public class AssignmentService {
      * 해당 차수의 조 편성 전체를 조회합니다. 편성이 확정된 뒤에만 볼 수 있습니다.
      */
     @Transactional(readOnly = true)
-    public TeamAssignmentResponse getTeams(Round round, Long groupId, Long userId) {
+    public TeamListResponse getTeams(Round round, Long groupId, Long userId) {
         Participant me = groupMembership.getMember(groupId, userId);
         Group group = me.getGroup();
 
@@ -155,9 +156,7 @@ public class AssignmentService {
                 .map(entry -> TeamDetail.of(entry.getKey(), entry.getValue()))
                 .toList();
 
-        // 엔티티의 지연 컬렉션을 그대로 내보내면 트랜잭션이 끝난 뒤 직렬화되면서 초기화에 실패한다
-        return new TeamAssignmentResponse(round, assignment.getTeamCount(),
-                Set.copyOf(assignment.getConditions()), teams);
+        return new TeamListResponse(round, teams);
     }
 
     /**
