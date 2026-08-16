@@ -124,6 +124,35 @@ public class AssignmentService {
     }
 
     /**
+     * 해당 차수의 조 편성 전체를 조회합니다. 편성이 확정된 뒤에만 볼 수 있습니다.
+     */
+    @Transactional(readOnly = true)
+    public TeamAssignmentResponse getTeams(Round round, Long groupId, Long userId) {
+        Group group = groupMembership.getMember(groupId, userId).getGroup();
+
+        if (!group.getStatus().isAssignmentConfirmed(round)) {
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성이 확정된 뒤에 조회할 수 있습니다.");
+        }
+
+        GroupAssignment assignment = groupAssignmentRepository.findByGroupAndRound(group, round)
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_GROUP_STATUS, "해당 차수의 조 편성이 없습니다."));
+
+        // 조 번호 순으로 정렬해 가져온 뒤 조 단위로 묶는다. LinkedHashMap이라 정렬이 유지된다.
+        Map<Integer, List<TeamAssignmentMember>> membersByTeam =
+                teamAssignmentMemberRepository.findByAssignment(assignment).stream()
+                        .collect(Collectors.groupingBy(TeamAssignmentMember::getTeamNumber,
+                                LinkedHashMap::new, Collectors.toList()));
+
+        List<TeamDetail> teams = membersByTeam.entrySet().stream()
+                .map(entry -> TeamDetail.of(entry.getKey(), entry.getValue()))
+                .toList();
+
+        // 엔티티의 지연 컬렉션을 그대로 내보내면 트랜잭션이 끝난 뒤 직렬화되면서 초기화에 실패한다
+        return new TeamAssignmentResponse(round, assignment.getTeamCount(),
+                Set.copyOf(assignment.getConditions()), teams);
+    }
+
+    /**
      * 참가자가 해당 차수에서 자신이 배정된 조와 조원을 조회합니다.
      * 편성이 확정되기 전에는 볼 수 없고, 그 차수의 편성 대상이 아니었던 참가자도 볼 수 없습니다.
      */

@@ -60,6 +60,14 @@ public class AssignmentController implements AssignmentApi {
      * @param userDetails 로그인한 사용자의 인증 정보
      * @return 내 조 번호와 조원 목록, 200
      */
+    public ResponseEntity<TeamAssignmentResponse> getTeams(
+            @PathVariable Long groupId,
+            @PathVariable Round round,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(assignmentService.getTeams(round, groupId, userDetails.getUserId()));
+    }
+
     public ResponseEntity<MyTeamResponse> getMyTeam(
             @PathVariable Long groupId,
             @PathVariable Round round,
