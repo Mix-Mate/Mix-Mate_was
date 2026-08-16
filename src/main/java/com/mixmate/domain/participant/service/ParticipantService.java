@@ -44,6 +44,10 @@ public class ParticipantService {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "2차 진행 상태에서만 조회할 수 있습니다.");
         if (me.getRole() != Role.HOST && group.getStatus().isBeforeFirstAssignment())
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성이 완료된 이후에 조회할 수 있습니다.");
+        // 2차에 가지 않는 참가자는 2차 명단을 볼 수 없다.
+        if (round == Round.SECOND_ROUND && me.getRole() != Role.HOST
+                && me.getRoundParticipation() != RoundParticipation.FIRST_AND_SECOND)
+            throw new CustomException(ErrorCode.FORBIDDEN, "2차 참여를 선택한 참가자만 조회할 수 있습니다.");
 
         List<Participant> participants = (round == Round.FIRST_ROUND)
                 ? participantRepository.findByGroup(group)

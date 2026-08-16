@@ -21,6 +21,11 @@ public interface TeamAssignmentMemberRepository extends JpaRepository<TeamAssign
     List<TeamAssignmentMember> findByAssignmentAndTeamNumber(@Param("assignment") GroupAssignment assignment,
                                                              @Param("teamNumber") int teamNumber);
 
+    // 배치 전체의 조원을 조 번호 순으로 가져온다. 조원 프로필이 응답에 나가므로 participant를 함께 로딩한다.
+    @Query("select m from TeamAssignmentMember m join fetch m.participant "
+            + "where m.assignment = :assignment order by m.teamNumber")
+    List<TeamAssignmentMember> findByAssignment(@Param("assignment") GroupAssignment assignment);
+
     // 재편성 시 기존 조원을 지운다. 같은 참가자가 다시 삽입되므로 DELETE가 INSERT보다 먼저 DB에 닿아야 한다.
     // 파생 쿼리는 flush 시점까지 삭제를 미뤄 (assignment_id, participant_id) 유니크에 걸린다.
     @Modifying(flushAutomatically = true)
