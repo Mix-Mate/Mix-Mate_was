@@ -167,7 +167,7 @@ public interface AssignmentApi {
                     해당 차수의 조 편성 전체를 조회합니다. 참가자 목록 화면의 '조별 보기'에 쓰입니다.
 
                     조 편성이 확정된 뒤에만 볼 수 있습니다. 편성 실행 응답과 같은 형식입니다.
-                    2차 참여를 선택하지 않은 참가자도 2차 편성을 조회할 수 있습니다. 자기 조가 없을 뿐입니다.""")
+                    2차 참여를 선택하지 않은 참가자는 2차 편성을 볼 수 없습니다. 관리자는 참여하지 않더라도 조회할 수 있습니다.""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공. 조 번호 순으로 정렬된 조 목록을 돌려줍니다.",
                     content = @Content(schema = @Schema(implementation = TeamAssignmentResponse.class),
@@ -206,10 +206,15 @@ public interface AssignmentApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
                             """))),
-            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아님",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
-                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 해당 차수의 편성 대상이 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "2차 불참자", value = """
+                                        { "code": "FORBIDDEN", "message": "2차 참여를 선택한 참가자만 조회할 수 있습니다." }
+                                    """)
+                    })),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }

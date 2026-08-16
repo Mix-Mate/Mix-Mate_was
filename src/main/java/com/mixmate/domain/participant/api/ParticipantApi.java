@@ -32,7 +32,8 @@ public interface ParticipantApi {
                     + "FIRST_ROUND는 조 편성이 끝난 뒤부터 조회할 수 있지만, "
                     + "관리자는 참가자를 추가·삭제해야 하므로 조 편성 전에도 조회할 수 있습니다. "
                     + "SECOND_ROUND는 2차 참석자만 포함되며, 2차 진행이 확정된 뒤부터 조회할 수 있습니다. "
-                    + "조 편성 전이라도 참석자는 정해져 있으므로 조회됩니다.")
+                    + "조 편성 전이라도 참석자는 정해져 있으므로 조회됩니다. "
+                    + "2차 참여를 선택하지 않은 참가자는 SECOND_ROUND를 조회할 수 없습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -43,10 +44,15 @@ public interface ParticipantApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
                             """))),
-            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아님",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
-                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 2차 참여자가 아닌데 SECOND_ROUND를 요청",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "2차 불참자", value = """
+                                        { "code": "FORBIDDEN", "message": "2차 참여를 선택한 참가자만 조회할 수 있습니다." }
+                                    """)
+                    })),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
