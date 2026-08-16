@@ -47,12 +47,35 @@ class TeamAssignerTest {
     }
 
     @Test
-    @DisplayName("인원 수 균등을 켜면 조별 인원 차이가 1 이하다")
+    @DisplayName("조건을 켜지 않아도 조별 인원 차이가 1 이하다")
     void balancesTeamSize() {
         List<Participant> participants = participants(31, i -> basic());
 
+        Map<Integer, List<Participant>> teams = assigner.assign(participants, 3, Set.of(), Map.of());
+
+        assertThat(spread(teams, p -> true)).isLessThanOrEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("조건이 없어 벌점이 늘 0이어도 빈 조가 생기지 않는다")
+    void neverLeavesTeamEmpty() {
+        List<Participant> participants = participants(6, i -> basic());
+
+        // 인원이 적을수록 한쪽으로 몰리기 쉬워 한 번만 돌려서는 드러나지 않는다
+        for (int i = 0; i < 100; i++) {
+            Map<Integer, List<Participant>> teams = assigner.assign(participants, 3, Set.of(), Map.of());
+
+            assertThat(teams.values()).allSatisfy(team -> assertThat(team).isNotEmpty());
+        }
+    }
+
+    @Test
+    @DisplayName("학과가 전원 달라 어느 조에 넣어도 벌점이 0이어도 인원은 고르게 나뉜다")
+    void balancesWhenNoParticipantSharesKey() {
+        List<Participant> participants = participants(12, i -> withMajor("학과" + i));
+
         Map<Integer, List<Participant>> teams =
-                assigner.assign(participants, 3, Set.of(AssignmentCondition.SIZE_BALANCE), Map.of());
+                assigner.assign(participants, 3, Set.of(AssignmentCondition.MAJOR_SPREAD), Map.of());
 
         assertThat(spread(teams, p -> true)).isLessThanOrEqualTo(1);
     }
@@ -109,8 +132,7 @@ class TeamAssignerTest {
                 participants.get(0).getParticipantId(), 3,
                 participants.get(1).getParticipantId(), 2);
 
-        Map<Integer, List<Participant>> teams = assigner.assign(
-                participants, 3, Set.of(AssignmentCondition.SIZE_BALANCE), fixedMembers);
+        Map<Integer, List<Participant>> teams = assigner.assign(participants, 3, Set.of(), fixedMembers);
 
         assertThat(teams.get(3)).contains(participants.get(0));
         assertThat(teams.get(2)).contains(participants.get(1));
@@ -183,6 +205,10 @@ class TeamAssignerTest {
 
     private Participant withMbti(Mbti mbti) {
         return participant(Gender.MALE, Grade.THIRD, Position.MEMBER, mbti, "컴퓨터공학과", false);
+    }
+
+    private Participant withMajor(String major) {
+        return participant(Gender.MALE, Grade.THIRD, Position.MEMBER, Mbti.ISTP, major, false);
     }
 
     private Participant withPosition(Position position) {
