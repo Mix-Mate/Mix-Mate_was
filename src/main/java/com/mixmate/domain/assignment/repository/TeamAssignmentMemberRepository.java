@@ -16,7 +16,7 @@ public interface TeamAssignmentMemberRepository extends JpaRepository<TeamAssign
 
     // 재편성 시 기존 조원을 지운다. 같은 참가자가 다시 삽입되므로 DELETE가 INSERT보다 먼저 DB에 닿아야 한다.
     // 파생 쿼리는 flush 시점까지 삭제를 미뤄 (assignment_id, participant_id) 유니크에 걸린다.
-    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Modifying(flushAutomatically = true)
     @Query("delete from TeamAssignmentMember m where m.assignment = :assignment")
     void deleteAllByAssignment(@Param("assignment") GroupAssignment assignment);
 }
