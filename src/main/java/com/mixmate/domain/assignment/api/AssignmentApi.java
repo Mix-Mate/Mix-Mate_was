@@ -20,7 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "조 편성", description = "라운드별 조 편성 실행과 확정 API")
+@Tag(name = "조 편성", description = "라운드별 조 편성 실행·확정과 배정 결과 조회 API")
 @RequestMapping(value = "/api/v1/groups", produces = MediaType.APPLICATION_JSON_VALUE)
 @SecurityRequirement(name = "JWT")
 public interface AssignmentApi {
@@ -50,14 +50,14 @@ public interface AssignmentApi {
                                         {
                                           "teamNumber": 1,
                                           "members": [
-                                            { "participantId": 304, "displayName": "김대현", "major": "컴퓨터공학과", "fixed": true },
-                                            { "participantId": 308, "displayName": "이서연", "major": "컴퓨터공학과", "fixed": false }
+                                            { "participantId": 304, "displayName": "김대현", "major": "컴퓨터공학과", "visibility": "PUBLIC", "fixed": true },
+                                            { "participantId": 308, "displayName": "이서연", "major": "컴퓨터공학과", "visibility": "PRIVATE", "fixed": false }
                                           ]
                                         },
                                         {
                                           "teamNumber": 2,
                                           "members": [
-                                            { "participantId": 305, "displayName": "박지호", "major": "전기공학과", "fixed": false }
+                                            { "participantId": 305, "displayName": "박지호", "major": "전기공학과", "visibility": "PUBLIC", "fixed": false }
                                           ]
                                         }
                                       ]
@@ -162,6 +162,75 @@ public interface AssignmentApi {
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 
+    @Operation(summary = "조 편성 전체 조회",
+            description = """
+                    해당 차수의 조 편성 전체를 조회합니다. 참가자 목록 화면의 '조별 보기'에 쓰입니다.
+
+                    조 편성이 확정된 뒤에만 볼 수 있습니다. 편성 실행 응답과 같은 형식입니다.
+                    2차 참여를 선택하지 않은 참가자도 2차 편성을 조회할 수 있습니다. 자기 조가 없을 뿐입니다.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공. 조 번호 순으로 정렬된 조 목록을 돌려줍니다.",
+                    content = @Content(schema = @Schema(implementation = TeamAssignmentResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "round": "FIRST_ROUND",
+                                      "teamCount": 2,
+                                      "conditions": ["GENDER_BALANCE", "SIZE_BALANCE"],
+                                      "teams": [
+                                        {
+                                          "teamNumber": 1,
+                                          "members": [
+                                            { "participantId": 435, "displayName": "이서연", "major": "컴퓨터공학과", "visibility": "PUBLIC", "fixed": false },
+                                            { "participantId": 436, "displayName": "박지호", "major": "전기공학과", "visibility": "PRIVATE", "fixed": false }
+                                          ]
+                                        },
+                                        {
+                                          "teamNumber": 2,
+                                          "members": [
+                                            { "participantId": 434, "displayName": "김대현", "major": "컴퓨터공학과", "visibility": "PUBLIC", "fixed": true }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                    """))),
+            @ApiResponse(responseCode = "400", description = "경로의 round 값이 enum에 없음. code 필드가 없는 스프링 기본 응답입니다.",
+                    content = @Content(examples = @ExampleObject(value = """
+                                {
+                                  "timestamp": "2026-08-16T10:04:40.839+00:00",
+                                  "status": 400,
+                                  "error": "Bad Request",
+                                  "path": "/api/v1/groups/1/rounds/THIRD_ROUND/teams"
+                                }
+                            """))),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아님",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "조 편성이 아직 확정되지 않았거나, 해당 차수의 편성이 없음",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "확정 전", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "조 편성이 확정된 뒤에 조회할 수 있습니다." }
+                                    """),
+                            @ExampleObject(name = "편성 없음", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "해당 차수의 조 편성이 없습니다." }
+                                    """)
+                    }))
+    })
+    @GetMapping("/{groupId}/rounds/{round}/teams")
+    ResponseEntity<TeamAssignmentResponse> getTeams(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(description = "조회할 차수", required = true) @PathVariable Round round,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
     @Operation(summary = "내 조 조회",
             description = """
                     참가자가 해당 차수에서 자신이 배정된 조와 조원을 조회합니다. 관리자도 참가자로서 조회합니다.
@@ -177,8 +246,8 @@ public interface AssignmentApi {
                                       "team": {
                                         "teamNumber": 2,
                                         "members": [
-                                          { "participantId": 304, "displayName": "김대현", "major": "컴퓨터공학과", "fixed": false },
-                                          { "participantId": 309, "displayName": "최수아", "major": "산업디자인", "fixed": true }
+                                          { "participantId": 304, "displayName": "김대현", "major": "컴퓨터공학과", "visibility": "PUBLIC", "fixed": false },
+                                          { "participantId": 309, "displayName": "최수아", "major": "산업디자인", "visibility": "PUBLIC", "fixed": true }
                                         ]
                                       }
                                     }
