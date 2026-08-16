@@ -2,6 +2,7 @@ package com.mixmate.domain.assignment.controller;
 
 import com.mixmate.domain.assignment.api.AssignmentApi;
 import com.mixmate.domain.assignment.dto.request.TeamGenerateRequest;
+import com.mixmate.domain.assignment.dto.response.MyTeamResponse;
 import com.mixmate.domain.assignment.dto.response.TeamAssignmentResponse;
 import com.mixmate.domain.assignment.service.AssignmentService;
 import com.mixmate.domain.participant.enums.Round;
@@ -50,5 +51,20 @@ public class AssignmentController implements AssignmentApi {
     ) {
         assignmentService.confirm(round, groupId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 참가자가 해당 차수에서 자신이 배정된 조와 조원을 조회합니다. 편성이 확정된 뒤에만 가능합니다.
+     * @param groupId 조회할 그룹 식별자
+     * @param round 조회할 차수
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 내 조 번호와 조원 목록, 200
+     */
+    public ResponseEntity<MyTeamResponse> getMyTeam(
+            @PathVariable Long groupId,
+            @PathVariable Round round,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(assignmentService.getMyTeam(round, groupId, userDetails.getUserId()));
     }
 }

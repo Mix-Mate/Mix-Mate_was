@@ -3,6 +3,7 @@ package com.mixmate.domain.assignment.service;
 import com.mixmate.domain.assignment.dto.FixedMember;
 import com.mixmate.domain.assignment.dto.TeamDetail;
 import com.mixmate.domain.assignment.dto.request.TeamGenerateRequest;
+import com.mixmate.domain.assignment.dto.response.MyTeamResponse;
 import com.mixmate.domain.assignment.dto.response.TeamAssignmentResponse;
 import com.mixmate.domain.assignment.entity.GroupAssignment;
 import com.mixmate.domain.assignment.entity.TeamAssignmentMember;
@@ -120,6 +121,34 @@ public class AssignmentService {
         }
 
         group.startRound(round);
+    }
+
+    /**
+     * 참가자가 해당 차수에서 자신이 배정된 조와 조원을 조회합니다.
+     * 편성이 확정되기 전에는 볼 수 없고, 그 차수의 편성 대상이 아니었던 참가자도 볼 수 없습니다.
+     */
+    @Transactional(readOnly = true)
+    public MyTeamResponse getMyTeam(Round round, Long groupId, Long userId) {
+        Participant me = groupMembership.getMember(groupId, userId);
+        Group group = me.getGroup();
+
+        // 확정 전 결과는 관리자가 재셔플하는 중일 수 있어 참가자에게 열지 않는다
+        if (!group.getStatus().isAssignmentConfirmed(round)) {
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성이 확정된 뒤에 조회할 수 있습니다.");
+        }
+
+        GroupAssignment assignment = groupAssignmentRepository.findByGroupAndRound(group, round)
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_GROUP_STATUS, "해당 차수의 조 편성이 없습니다."));
+
+        // 입장은 모집 중에만 가능하므로 계정이 있는 참가자는 1차 배치에 반드시 들어 있다.
+        // 즉 여기서 걸리는 것은 2차 참여를 선택하지 않아 2차 배치에서 빠진 참가자뿐이다.
+        TeamAssignmentMember myAssignment = teamAssignmentMemberRepository.findByAssignmentAndParticipant(assignment, me)
+                .orElseThrow(() -> new CustomException(ErrorCode.FORBIDDEN, "2차 참여를 선택한 참가자만 조회할 수 있습니다."));
+
+        List<TeamAssignmentMember> teammates =
+                teamAssignmentMemberRepository.findByAssignmentAndTeamNumber(assignment, myAssignment.getTeamNumber());
+
+        return new MyTeamResponse(round, TeamDetail.of(myAssignment.getTeamNumber(), teammates));
     }
 
     /**

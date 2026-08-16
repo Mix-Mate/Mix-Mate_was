@@ -1,6 +1,7 @@
 package com.mixmate.domain.assignment.api;
 
 import com.mixmate.domain.assignment.dto.request.TeamGenerateRequest;
+import com.mixmate.domain.assignment.dto.response.MyTeamResponse;
 import com.mixmate.domain.assignment.dto.response.TeamAssignmentResponse;
 import com.mixmate.domain.participant.enums.Round;
 import com.mixmate.security.CustomUserDetails;
@@ -158,6 +159,70 @@ public interface AssignmentApi {
     ResponseEntity<Void> confirm(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(description = "확정할 차수", required = true) @PathVariable Round round,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "내 조 조회",
+            description = """
+                    참가자가 해당 차수에서 자신이 배정된 조와 조원을 조회합니다. 관리자도 참가자로서 조회합니다.
+
+                    조 편성이 확정된 뒤에만 볼 수 있습니다. 확정 전 결과는 관리자가 다시 편성하는 중일 수 있어 열지 않습니다.
+                    2차 참여를 선택하지 않은 참가자는 2차 배치에 포함되지 않아 조회할 수 없습니다.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공. 내 조 번호와 조원 목록을 돌려줍니다.",
+                    content = @Content(schema = @Schema(implementation = MyTeamResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "round": "FIRST_ROUND",
+                                      "team": {
+                                        "teamNumber": 2,
+                                        "members": [
+                                          { "participantId": 304, "displayName": "김대현", "major": "컴퓨터공학과", "fixed": false },
+                                          { "participantId": 309, "displayName": "최수아", "major": "산업디자인", "fixed": true }
+                                        ]
+                                      }
+                                    }
+                                    """))),
+            @ApiResponse(responseCode = "400", description = "경로의 round 값이 enum에 없음. code 필드가 없는 스프링 기본 응답입니다.",
+                    content = @Content(examples = @ExampleObject(value = """
+                                {
+                                  "timestamp": "2026-08-16T06:42:06.595+00:00",
+                                  "status": 400,
+                                  "error": "Bad Request",
+                                  "path": "/api/v1/groups/1/rounds/FIRST_ROUND/teams/my-team"
+                                }
+                            """))),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 해당 차수의 편성 대상이 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "2차 불참자", value = """
+                                        { "code": "FORBIDDEN", "message": "2차 참여를 선택한 참가자만 조회할 수 있습니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "조 편성이 아직 확정되지 않았거나, 해당 차수의 편성이 없음",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "확정 전", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "조 편성이 확정된 뒤에 조회할 수 있습니다." }
+                                    """),
+                            @ExampleObject(name = "편성 없음", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "해당 차수의 조 편성이 없습니다." }
+                                    """)
+                    }))
+    })
+    @GetMapping("/{groupId}/rounds/{round}/teams/my-team")
+    ResponseEntity<MyTeamResponse> getMyTeam(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(description = "조회할 차수", required = true) @PathVariable Round round,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 }
