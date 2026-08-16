@@ -115,11 +115,11 @@ public class GroupController implements GroupApi {
      * @param userDetails 로그인한 사용자의 인증 정보
      * @return 본문 없는 204
      */
-    public ResponseEntity<Void> startSecondRound(
+    public ResponseEntity<Void> decideSecondRound(
             @PathVariable Long groupId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        groupService.startSecondRound(groupId, userDetails.getUserId());
+        groupService.decideSecondRound(groupId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 

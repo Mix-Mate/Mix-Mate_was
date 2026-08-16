@@ -1,0 +1,163 @@
+package com.mixmate.domain.assignment.api;
+
+import com.mixmate.domain.assignment.dto.request.TeamGenerateRequest;
+import com.mixmate.domain.assignment.dto.response.TeamAssignmentResponse;
+import com.mixmate.domain.participant.enums.Round;
+import com.mixmate.security.CustomUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@Tag(name = "조 편성", description = "라운드별 조 편성 실행과 확정 API")
+@RequestMapping(value = "/api/v1/groups", produces = MediaType.APPLICATION_JSON_VALUE)
+@SecurityRequirement(name = "JWT")
+public interface AssignmentApi {
+
+    @Operation(summary = "조 편성 실행",
+            description = """
+                    관리자가 배치 조건과 조 개수를 정해 조를 편성합니다. 결과는 저장되지만 아직 확정은 아니며,
+                    확정 API를 호출해야 라운드가 시작됩니다.
+
+                    조건(conditions)은 켜진 것만 배열로 보냅니다. 전부 끄면 빈 배열이고 완전 무작위 편성이 됩니다.
+                    고정 멤버(fixedMembers)는 지정한 조에 먼저 배치되고 나머지가 조건에 따라 흩어집니다. 없으면 빈 배열입니다.
+
+                    1차는 그룹 참가자 전원이, 2차는 2차 참여를 선택한 인원만 대상입니다.
+                    재실행(재셔플)은 아직 지원하지 않아 같은 라운드에 두 번 호출하면 409입니다.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "편성 성공. 조별 참가자 목록을 돌려줍니다.",
+                    content = @Content(schema = @Schema(implementation = TeamAssignmentResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "round": "FIRST_ROUND",
+                                      "teamCount": 2,
+                                      "conditions": ["GENDER_BALANCE", "SIZE_BALANCE"],
+                                      "teams": [
+                                        {
+                                          "teamNumber": 1,
+                                          "members": [
+                                            { "participantId": 304, "displayName": "김대현", "major": "컴퓨터공학과", "fixed": true },
+                                            { "participantId": 308, "displayName": "이서연", "major": "컴퓨터공학과", "fixed": false }
+                                          ]
+                                        },
+                                        {
+                                          "teamNumber": 2,
+                                          "members": [
+                                            { "participantId": 305, "displayName": "박지호", "major": "전기공학과", "fixed": false }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                    """))),
+            @ApiResponse(responseCode = "400", description = """
+                    고정 멤버 지정이 잘못됐거나(공통 형식), 요청 값 검증에 실패함(공통 형식 아님).
+                    입력값 검증 실패와 경로의 round 오타는 code 필드가 없는 스프링 기본 응답으로 나갑니다.""",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "고정 멤버 오류", value = """
+                                        { "code": "INVALID_PARAMETER", "message": "조 편성 대상이 아닌 참가자는 고정할 수 없습니다." }
+                                    """),
+                            @ExampleObject(name = "조 번호 범위 밖", value = """
+                                        { "code": "INVALID_PARAMETER", "message": "조 번호가 조 개수를 벗어났습니다." }
+                                    """),
+                            @ExampleObject(name = "중복 고정", value = """
+                                        { "code": "INVALID_PARAMETER", "message": "같은 참가자를 두 번 고정할 수 없습니다." }
+                                    """),
+                            @ExampleObject(name = "입력값 검증 실패 (code 없음)", value = """
+                                        {
+                                          "timestamp": "2026-08-16T06:42:06.595+00:00",
+                                          "status": 400,
+                                          "error": "Bad Request",
+                                          "path": "/api/v1/groups/1/rounds/FIRST_ROUND/teams/generate"
+                                        }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "편성할 수 있는 상태가 아니거나, 이미 편성했거나, 인원이 조 개수보다 적음",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "편성 대기 상태 아님", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "조 편성 대기 중일 때만 편성할 수 있습니다." }
+                                    """),
+                            @ExampleObject(name = "이미 편성함", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "이미 조 편성을 실행했습니다." }
+                                    """),
+                            @ExampleObject(name = "인원 부족", value = """
+                                        { "code": "INSUFFICIENT_PARTICIPANTS", "message": "조 편성에 필요한 최소 인원을 충족하지 못했습니다." }
+                                    """)
+                    }))
+    })
+    @PostMapping("/{groupId}/rounds/{round}/teams/generate")
+    ResponseEntity<TeamAssignmentResponse> generate(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(description = "편성할 차수", required = true) @PathVariable Round round,
+            @Valid @RequestBody TeamGenerateRequest dto,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "조 편성 확정",
+            description = """
+                    관리자가 편성 결과를 확정해 해당 라운드를 시작합니다.
+                    그룹 상태가 FIRST_ROUND 또는 SECOND_ROUND로 바뀌며 참가자가 자기 조를 볼 수 있게 됩니다. 되돌릴 수 없습니다.
+
+                    편성을 실행하지 않고 호출하면 409입니다.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "확정 성공. 이미 그 라운드가 시작된 그룹에 다시 호출해도 204입니다."),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "확정할 수 있는 상태가 아니거나, 편성을 실행하지 않음",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "편성 대기 상태 아님", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "조 편성 대기 중일 때만 확정할 수 있습니다." }
+                                    """),
+                            @ExampleObject(name = "편성 안 함", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "조 편성을 먼저 실행해야 합니다." }
+                                    """)
+                    }))
+    })
+    @PostMapping("/{groupId}/rounds/{round}/teams/confirm")
+    ResponseEntity<Void> confirm(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(description = "확정할 차수", required = true) @PathVariable Round round,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+}
