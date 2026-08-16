@@ -33,7 +33,6 @@ public class TeamAssigner {
     private static final int ATTEMPTS = 20;
 
     // 조건별로 "이 값이 같으면 같은 부류"를 정하는 기준.
-    // SIZE_BALANCE는 부류를 세는 조건이 아니라 동점 처리 규칙이라 여기 없다.
     private static final Map<AssignmentCondition, Function<Participant, Object>> KEYS =
             new EnumMap<>(AssignmentCondition.class);
 
@@ -137,8 +136,9 @@ public class TeamAssigner {
 
         int penalty = 0;
         for (AssignmentCondition condition : conditions) {
-            Function<Participant, Object> key = KEYS.get(condition);
-            if (key == null) continue;   // SIZE_BALANCE
+            // 상수를 추가하고 KEYS에 넣지 않으면 조용히 무시되는 대신 여기서 바로 터진다
+            Function<Participant, Object> key = Objects.requireNonNull(KEYS.get(condition),
+                    () -> condition + "의 분류 기준이 없습니다.");
 
             Object candidateKey = key.apply(candidate);
             for (Participant member : team) {
