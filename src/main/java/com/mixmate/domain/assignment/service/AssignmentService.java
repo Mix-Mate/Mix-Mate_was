@@ -47,7 +47,7 @@ public class AssignmentService {
 
     /**
      * 관리자가 조 편성을 실행합니다. 1차는 참가자 전원이, 2차는 2차 참여를 선택한 인원만 대상입니다.
-     * 재실행(재셔플)은 아직 없어 같은 라운드에 두 번 호출할 수 없습니다.
+     * 확정 전이면 몇 번이든 다시 실행할 수 있고, 그때마다 기존 편성 결과를 덮어씁니다.
      */
     @Transactional
     public TeamAssignmentResponse generate(TeamGenerateRequest dto, Round round, Long groupId, Long userId) {
@@ -55,10 +55,6 @@ public class AssignmentService {
 
         if (!group.getStatus().canAssign(round)) {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "조 편성 대기 중일 때만 편성할 수 있습니다.");
-        }
-        // 재실행(재셔플)은 아직 없다. 같은 라운드의 배치는 하나뿐이라 두 번째 요청은 막아뒀다
-        if (groupAssignmentRepository.findByGroupAndRound(group, round).isPresent()) {
-            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "이미 조 편성을 실행했습니다.");
         }
 
         // 2차는 참여하겠다고 투표한 인원만 대상이다
@@ -72,9 +68,17 @@ public class AssignmentService {
 
         Map<Long, Integer> fixedMembers = toFixedMembers(dto, participants);
 
-        // 조원이 배치를 참조하므로 배치를 먼저 저장해 식별자를 받는다
-        GroupAssignment assignment = groupAssignmentRepository.save(
-                GroupAssignment.create(group, round, dto.teamCount(), dto.conditions()));
+        // 라운드당 배치는 하나뿐이라 재실행은 새로 만들지 않고 기존 배치를 갱신한다.
+        // 같은 참가자가 다시 삽입되므로 기존 조원을 먼저 지운다(벌크 삭제라 즉시 DB에 반영된다).
+        // 조원이 배치를 참조하므로 새 배치는 먼저 저장해 식별자를 받는다.
+        GroupAssignment assignment = groupAssignmentRepository.findByGroupAndRound(group, round)
+                .map(existing -> {
+                    teamAssignmentMemberRepository.deleteAllByAssignment(existing);
+                    existing.regenerate(dto.teamCount(), dto.conditions());
+                    return existing;
+                })
+                .orElseGet(() -> groupAssignmentRepository.save(
+                        GroupAssignment.create(group, round, dto.teamCount(), dto.conditions())));
 
         Map<Integer, List<Participant>> teams =
                 teamAssigner.assign(participants, dto.teamCount(), dto.conditions(), fixedMembers);

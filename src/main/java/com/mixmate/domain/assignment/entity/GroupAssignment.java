@@ -55,6 +55,13 @@ public class GroupAssignment {
         return new GroupAssignment(group, round, teamCount, conditions);
     }
 
+    // 재편성. 컬렉션을 갈아끼우지 않고 비우고 채워야 Hibernate가 관리하던 컬렉션을 그대로 쓴다.
+    public void regenerate(int teamCount, Set<AssignmentCondition> conditions) {
+        this.teamCount = teamCount;
+        this.conditions.clear();
+        this.conditions.addAll(conditions);
+    }
+
     private GroupAssignment(Group group, Round round, int teamCount, Set<AssignmentCondition> conditions) {
         this.group = group;
         this.round = round;
