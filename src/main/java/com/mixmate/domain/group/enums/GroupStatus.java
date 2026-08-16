@@ -27,6 +27,15 @@ public enum GroupStatus {
         };
     }
 
+    // 이 라운드의 조 편성이 확정됐는지. 참가자에게 배정 결과를 열어줄지 판단하는 기준이다.
+    // 2차를 건너뛰고 종료한 그룹도 FINISHED가 되지만, 그 경우 2차 배치 자체가 없어 호출부에서 걸러진다.
+    public boolean isAssignmentConfirmed(Round round) {
+        return switch (round) {
+            case FIRST_ROUND -> !isBeforeFirstAssignment();
+            case SECOND_ROUND -> this == SECOND_ROUND || this == FINISHED;
+        };
+    }
+
     // 조 편성 확정으로 이 라운드가 이미 시작됐는지. 확정 API의 멱등 처리에 쓴다.
     public boolean isRoundInProgress(Round round) {
         return switch (round) {
