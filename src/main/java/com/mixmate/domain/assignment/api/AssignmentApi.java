@@ -33,9 +33,12 @@ public interface AssignmentApi {
                     고정 멤버(fixedMembers)는 지정한 조에 먼저 배치되고 나머지가 조건에 따라 흩어집니다. 없으면 빈 배열입니다.
 
                     1차는 그룹 참가자 전원이, 2차는 2차 참여를 선택한 인원만 대상입니다.
-                    재실행(재셔플)은 아직 지원하지 않아 같은 라운드에 두 번 호출하면 409입니다.""")
+
+                    확정 전이라면 같은 요청을 다시 보낼 수 있습니다(재셔플).
+                    그때마다 이전 편성 결과를 덮어쓰며, 조 개수와 조건도 새로 보낸 값으로 바뀝니다.
+                    확정한 뒤에는 다시 편성할 수 없습니다.""")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "편성 성공. 조별 참가자 목록을 돌려줍니다.",
+            @ApiResponse(responseCode = "200", description = "편성 성공. 조별 참가자 목록을 돌려줍니다. 재실행이어도 같은 형식입니다.",
                     content = @Content(schema = @Schema(implementation = TeamAssignmentResponse.class),
                             examples = @ExampleObject(value = """
                                     {
@@ -98,13 +101,10 @@ public interface AssignmentApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
-            @ApiResponse(responseCode = "409", description = "편성할 수 있는 상태가 아니거나, 이미 편성했거나, 인원이 조 개수보다 적음",
+            @ApiResponse(responseCode = "409", description = "편성할 수 있는 상태가 아니거나(이미 확정한 경우 포함), 인원이 조 개수보다 적음",
                     content = @Content(examples = {
                             @ExampleObject(name = "편성 대기 상태 아님", value = """
                                         { "code": "INVALID_GROUP_STATUS", "message": "조 편성 대기 중일 때만 편성할 수 있습니다." }
-                                    """),
-                            @ExampleObject(name = "이미 편성함", value = """
-                                        { "code": "INVALID_GROUP_STATUS", "message": "이미 조 편성을 실행했습니다." }
                                     """),
                             @ExampleObject(name = "인원 부족", value = """
                                         { "code": "INSUFFICIENT_PARTICIPANTS", "message": "조 편성에 필요한 최소 인원을 충족하지 못했습니다." }
