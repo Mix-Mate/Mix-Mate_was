@@ -30,8 +30,10 @@ public interface AssignmentApi {
                     관리자가 배치 조건과 조 개수를 정해 조를 편성합니다. 결과는 저장되지만 아직 확정은 아니며,
                     확정 API를 호출해야 라운드가 시작됩니다.
 
-                    조건(conditions)은 켜진 것만 배열로 보냅니다. 전부 끄면 빈 배열이고 완전 무작위 편성이 됩니다.
+                    조건(conditions)은 켜진 것만 배열로 보냅니다. 전부 끄면 빈 배열이고 조건 없이 무작위로 나눕니다.
+                    조건과 무관하게 조별 인원은 항상 고르게 나뉘므로, 인원 균등은 조건으로 보내지 않습니다.
                     고정 멤버(fixedMembers)는 지정한 조에 먼저 배치되고 나머지가 조건에 따라 흩어집니다. 없으면 빈 배열입니다.
+                    고정 멤버를 한 조에 몰아넣지 않는 한 조별 인원 차이는 1명 이하입니다.
 
                     1차는 그룹 참가자 전원이, 2차는 2차 참여를 선택한 인원만 대상입니다.
 
@@ -45,7 +47,7 @@ public interface AssignmentApi {
                                     {
                                       "round": "FIRST_ROUND",
                                       "teamCount": 2,
-                                      "conditions": ["GENDER_BALANCE", "SIZE_BALANCE"],
+                                      "conditions": ["GENDER_BALANCE", "MAJOR_SPREAD"],
                                       "teams": [
                                         {
                                           "teamNumber": 1,
@@ -102,7 +104,7 @@ public interface AssignmentApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
-            @ApiResponse(responseCode = "409", description = "편성할 수 있는 상태가 아니거나(이미 확정한 경우 포함), 인원이 조 개수보다 적음",
+            @ApiResponse(responseCode = "409", description = "편성할 수 있는 상태가 아니거나(이미 확정한 경우 포함), 조당 2명을 채우지 못함",
                     content = @Content(examples = {
                             @ExampleObject(name = "편성 대기 상태 아님", value = """
                                         { "code": "INVALID_GROUP_STATUS", "message": "조 편성 대기 중일 때만 편성할 수 있습니다." }
@@ -175,7 +177,7 @@ public interface AssignmentApi {
                                     {
                                       "round": "FIRST_ROUND",
                                       "teamCount": 2,
-                                      "conditions": ["GENDER_BALANCE", "SIZE_BALANCE"],
+                                      "conditions": ["GENDER_BALANCE", "MAJOR_SPREAD"],
                                       "teams": [
                                         {
                                           "teamNumber": 1,
