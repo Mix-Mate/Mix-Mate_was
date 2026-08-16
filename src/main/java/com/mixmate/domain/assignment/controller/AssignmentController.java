@@ -2,6 +2,7 @@ package com.mixmate.domain.assignment.controller;
 
 import com.mixmate.domain.assignment.api.AssignmentApi;
 import com.mixmate.domain.assignment.dto.request.TeamGenerateRequest;
+import com.mixmate.domain.assignment.dto.response.MyTeamResponse;
 import com.mixmate.domain.assignment.dto.response.TeamAssignmentResponse;
 import com.mixmate.domain.assignment.service.AssignmentService;
 import com.mixmate.domain.participant.enums.Round;
@@ -50,5 +51,13 @@ public class AssignmentController implements AssignmentApi {
     ) {
         assignmentService.confirm(round, groupId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
+    }
+
+    public ResponseEntity<MyTeamResponse> getMyTeam(
+            @PathVariable Long groupId,
+            @PathVariable Round round,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(assignmentService.getMyTeam(round, groupId, userDetails.getUserId()));
     }
 }
