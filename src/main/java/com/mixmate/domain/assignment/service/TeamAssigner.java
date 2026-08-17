@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,19 +30,6 @@ public class TeamAssigner {
 
     /** 그리디를 돌리는 횟수. 참가자가 백 명 안쪽이라 스무 번을 돌려도 비용은 무시할 수 있다. */
     private static final int ATTEMPTS = 20;
-
-    // 조건별로 "이 값이 같으면 같은 부류"를 정하는 기준.
-    private static final Map<AssignmentCondition, Function<Participant, Object>> KEYS =
-            new EnumMap<>(AssignmentCondition.class);
-
-    static {
-        KEYS.put(AssignmentCondition.GENDER_BALANCE, p -> p.getProfile().getGender());
-        KEYS.put(AssignmentCondition.MBTI_BALANCE, p -> p.getProfile().getMbti().isExtrovert());
-        KEYS.put(AssignmentCondition.GRADE_SPREAD, p -> p.getProfile().getGrade());
-        KEYS.put(AssignmentCondition.MAJOR_SPREAD, p -> p.getProfile().getMajor());
-        KEYS.put(AssignmentCondition.NEWCOMER_SPREAD, p -> p.getProfile().isNew());
-        KEYS.put(AssignmentCondition.POSITION_SPREAD, p -> p.getProfile().getPosition());
-    }
 
     public Map<Integer, List<Participant>> assign(List<Participant> participants,
                                                   int teamCount,
@@ -136,9 +122,7 @@ public class TeamAssigner {
 
         int penalty = 0;
         for (AssignmentCondition condition : conditions) {
-            // 상수를 추가하고 KEYS에 넣지 않으면 조용히 무시되는 대신 여기서 바로 터진다
-            Function<Participant, Object> key = Objects.requireNonNull(KEYS.get(condition),
-                    () -> condition + "의 분류 기준이 없습니다.");
+            Function<Participant, Object> key = ParticipantKeys.of(condition);
 
             Object candidateKey = key.apply(candidate);
             for (Participant member : team) {
