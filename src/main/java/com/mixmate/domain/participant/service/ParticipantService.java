@@ -30,6 +30,7 @@ public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
     private final GroupMembership groupMembership;
+    private final AssignmentReset assignmentReset;
 
     /**
      * 조 편성이 끝난 그룹의 참가자를 차수별로 조회합니다. 카드 표시에 필요한 최소 정보만 내려줍니다.
@@ -130,6 +131,8 @@ public class ParticipantService {
         if (targetParticipant.getRole() == Role.HOST)
             throw new CustomException(ErrorCode.FORBIDDEN, "호스트 본인은 삭제할 수 없습니다.");
 
+        // 명단이 바뀐 편성은 틀린 결과다. 지운 뒤 관리자가 다시 편성한다.
+        assignmentReset.resetByGroup(group);
         participantRepository.delete(targetParticipant);
     }
 
@@ -145,6 +148,9 @@ public class ParticipantService {
 
         Participant addedParticipant = Participant.addByHost(group, dto.toEntity());
         participantRepository.save(addedParticipant);
+
+        // 이 참가자는 기존 편성 어디에도 없다. 그대로 두면 조가 없는 채로 확정된다.
+        assignmentReset.resetByGroup(group);
         return addedParticipant.getParticipantId();
     }
 }
