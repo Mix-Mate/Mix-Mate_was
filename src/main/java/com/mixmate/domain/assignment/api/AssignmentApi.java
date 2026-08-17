@@ -249,7 +249,11 @@ public interface AssignmentApi {
                     참가자가 해당 차수에서 자신이 배정된 조와 조원을 조회합니다. 관리자도 참가자로서 조회합니다.
 
                     조 편성이 확정된 뒤에만 볼 수 있습니다. 확정 전 결과는 관리자가 다시 편성하는 중일 수 있어 열지 않습니다.
-                    2차 참여를 선택하지 않은 참가자는 2차 배치에 포함되지 않아 조회할 수 없습니다.""")
+                    2차 참여를 선택하지 않은 참가자는 2차 배치에 포함되지 않아 조회할 수 없습니다.
+
+                    지난 차수도 같은 방식으로 조회합니다. 2차가 진행 중일 때 round에 FIRST_ROUND를 넣으면
+                    1차에서 자신이 속했던 조와 조원이 그대로 나오므로, "이전 조 기록" 화면은 이 엔드포인트를 씁니다.
+                    2차 편성이 아직 확정되지 않은 상태(BEFORE_SECOND_ROUND)에서 SECOND_ROUND로 부르면 409입니다.""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공. 내 조 번호와 조원 목록을 돌려줍니다.",
                     content = @Content(schema = @Schema(implementation = MyTeamResponse.class),
