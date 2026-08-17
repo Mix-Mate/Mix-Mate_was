@@ -212,9 +212,11 @@ public interface ParticipantApi {
             description = "관리자가 다른 참가자를 그룹에서 내보냅니다. "
                     + "1차가 시작되면 명단이 고정되므로 그 전에만 가능하며, 모집 마감 이후에도 할 수 있습니다. "
                     + "관리자 본인은 대상으로 지정할 수 없습니다. 그룹을 정리하려면 그룹 삭제를 사용합니다. "
-                    + "대리 등록된 오프라인 참가자도 같은 방식으로 삭제됩니다.")
+                    + "대리 등록된 오프라인 참가자도 같은 방식으로 삭제됩니다. "
+                    + "이미 실행해둔 조 편성이 있으면 함께 지워집니다. 명단이 달라진 편성은 틀린 결과이므로 "
+                    + "관리자가 다시 편성해야 합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "삭제 성공",
+            @ApiResponse(responseCode = "204", description = "삭제 성공. 실행해둔 조 편성이 있었다면 초기화됩니다.",
                     content = @Content),
             @ApiResponse(responseCode = "401", description = "인증 없음",
                     content = @Content(examples = @ExampleObject(value = """
@@ -257,9 +259,11 @@ public interface ParticipantApi {
             description = "관리자가 로그인 계정이 없는 오프라인 참가자를 대신 등록합니다. "
                     + "1차가 시작되면 명단이 고정되므로 그 전에만 가능하며, 모집 마감 이후에도 할 수 있습니다. "
                     + "이렇게 추가된 참가자는 계정과 연결되지 않아 본인이 프로필을 수정할 수 없으므로, "
-                    + "잘못 입력했다면 삭제 후 다시 추가합니다.")
+                    + "잘못 입력했다면 삭제 후 다시 추가합니다. "
+                    + "이미 실행해둔 조 편성이 있으면 함께 지워집니다. 추가된 참가자가 어느 조에도 없는 채로 "
+                    + "확정되는 것을 막기 위한 것으로, 관리자가 다시 편성해야 합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "참가자 추가 성공. 응답 헤더 Location에 추가된 참가자 경로가 담깁니다.",
+            @ApiResponse(responseCode = "201", description = "참가자 추가 성공. 응답 헤더 Location에 추가된 참가자 경로가 담깁니다. 실행해둔 조 편성이 있었다면 초기화됩니다.",
                     content = @Content),
             @ApiResponse(responseCode = "400", description = "필수값 누락, enum 값 불일치 등 입력값 오류",
                     content = @Content),
