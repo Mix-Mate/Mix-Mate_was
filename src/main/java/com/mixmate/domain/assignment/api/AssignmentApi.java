@@ -2,6 +2,7 @@ package com.mixmate.domain.assignment.api;
 
 import com.mixmate.domain.assignment.dto.request.TeamGenerateRequest;
 import com.mixmate.domain.assignment.dto.response.MyTeamResponse;
+import com.mixmate.domain.assignment.dto.response.TeamGenerateResponse;
 import com.mixmate.domain.assignment.dto.response.TeamListResponse;
 import com.mixmate.domain.participant.enums.Round;
 import com.mixmate.security.CustomUserDetails;
@@ -113,7 +114,7 @@ public interface AssignmentApi {
                     }))
     })
     @PostMapping("/{groupId}/rounds/{round}/teams/generate")
-    ResponseEntity<TeamListResponse> generate(
+    ResponseEntity<TeamGenerateResponse> generate(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(description = "편성할 차수", required = true) @PathVariable Round round,
             @Valid @RequestBody TeamGenerateRequest dto,

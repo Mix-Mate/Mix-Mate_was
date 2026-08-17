@@ -3,6 +3,7 @@ package com.mixmate.domain.assignment.controller;
 import com.mixmate.domain.assignment.api.AssignmentApi;
 import com.mixmate.domain.assignment.dto.request.TeamGenerateRequest;
 import com.mixmate.domain.assignment.dto.response.MyTeamResponse;
+import com.mixmate.domain.assignment.dto.response.TeamGenerateResponse;
 import com.mixmate.domain.assignment.dto.response.TeamListResponse;
 import com.mixmate.domain.assignment.service.AssignmentService;
 import com.mixmate.domain.participant.enums.Round;
@@ -28,7 +29,7 @@ public class AssignmentController implements AssignmentApi {
      * @param userDetails 로그인한 사용자의 인증 정보
      * @return 조별 참가자 목록과 200
      */
-    public ResponseEntity<TeamListResponse> generate(
+    public ResponseEntity<TeamGenerateResponse> generate(
             @PathVariable Long groupId,
             @PathVariable Round round,
             @Valid @RequestBody TeamGenerateRequest dto,
