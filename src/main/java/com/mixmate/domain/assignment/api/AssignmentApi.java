@@ -40,10 +40,15 @@ public interface AssignmentApi {
 
                     확정 전이라면 같은 요청을 다시 보낼 수 있습니다(재셔플).
                     그때마다 이전 편성 결과를 덮어쓰며, 조 개수와 조건도 새로 보낸 값으로 바뀝니다.
-                    확정한 뒤에는 다시 편성할 수 없습니다.""")
+                    확정한 뒤에는 다시 편성할 수 없습니다.
+
+                    경고(warnings)는 관리자가 확정 전에 알아야 할 것을 문장으로 담습니다. 문제가 없으면 빈 배열입니다.
+                    켠 조건을 못 지킨 경우와 참가자 구성상 애초에 지킬 수 없는 경우가 함께 들어가며,
+                    후자는 재셔플해도 그대로이므로 조 개수를 줄이거나 조건을 꺼야 합니다.
+                    경고가 있어도 확정은 막지 않습니다.""")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "편성 성공. 조별 참가자 목록을 돌려줍니다. 재실행이어도 같은 형식입니다.",
-                    content = @Content(schema = @Schema(implementation = TeamListResponse.class),
+            @ApiResponse(responseCode = "200", description = "편성 성공. 조별 참가자 목록과 편성 경고를 돌려줍니다. 재실행이어도 같은 형식입니다.",
+                    content = @Content(schema = @Schema(implementation = TeamGenerateResponse.class),
                             examples = @ExampleObject(value = """
                                     {
                                       "round": "FIRST_ROUND",
@@ -61,6 +66,10 @@ public interface AssignmentApi {
                                             { "participantId": 305, "displayName": "박지호", "major": "전기공학과", "visibility": "PUBLIC", "fixed": false }
                                           ]
                                         }
+                                      ],
+                                      "warnings": [
+                                        "성별 균형이 지켜지지 않았습니다.",
+                                        "운영진 1명으로는 2개 조를 모두 채울 수 없습니다."
                                       ]
                                     }
                                     """))),
