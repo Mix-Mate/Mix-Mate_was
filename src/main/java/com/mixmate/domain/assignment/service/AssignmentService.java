@@ -4,6 +4,7 @@ import com.mixmate.domain.assignment.dto.FixedMember;
 import com.mixmate.domain.assignment.dto.TeamDetail;
 import com.mixmate.domain.assignment.dto.request.TeamGenerateRequest;
 import com.mixmate.domain.assignment.dto.response.MyTeamResponse;
+import com.mixmate.domain.assignment.dto.response.TeamGenerateResponse;
 import com.mixmate.domain.assignment.dto.response.TeamListResponse;
 import com.mixmate.domain.assignment.entity.GroupAssignment;
 import com.mixmate.domain.assignment.entity.TeamAssignmentMember;
@@ -46,13 +47,14 @@ public class AssignmentService {
     private final ParticipantRepository participantRepository;
     private final GroupMembership groupMembership;
     private final TeamAssigner teamAssigner;
+    private final AssignmentSummarizer assignmentSummarizer;
 
     /**
      * 관리자가 조 편성을 실행합니다. 1차는 참가자 전원이, 2차는 2차 참여를 선택한 인원만 대상입니다.
      * 확정 전이면 몇 번이든 다시 실행할 수 있고, 그때마다 기존 편성 결과를 덮어씁니다.
      */
     @Transactional
-    public TeamListResponse generate(TeamGenerateRequest dto, Round round, Long groupId, Long userId) {
+    public TeamGenerateResponse generate(TeamGenerateRequest dto, Round round, Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
 
         if (!group.getStatus().canAssign(round)) {
@@ -100,7 +102,7 @@ public class AssignmentService {
                 .map(entry -> TeamDetail.of(entry.getKey(), entry.getValue()))
                 .toList();
 
-        return new TeamListResponse(round, teamDetails);
+        return new TeamGenerateResponse(round, teamDetails, assignmentSummarizer.warningsOf(teams, dto.conditions()));
     }
 
     /**
