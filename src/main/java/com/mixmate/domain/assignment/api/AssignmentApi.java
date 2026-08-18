@@ -48,31 +48,8 @@ public interface AssignmentApi {
                     경고가 있어도 확정은 막지 않습니다.""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "편성 성공. 조별 참가자 목록과 편성 경고를 돌려줍니다. 재실행이어도 같은 형식입니다.",
-                    content = @Content(schema = @Schema(implementation = TeamGenerateResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "round": "FIRST_ROUND",
-                                      "teams": [
-                                        {
-                                          "teamNumber": 1,
-                                          "members": [
-                                            { "participantId": 304, "displayName": "김대현", "major": "컴퓨터공학과", "visibility": "PUBLIC", "fixed": true },
-                                            { "participantId": 308, "displayName": "이서연", "major": "컴퓨터공학과", "visibility": "PRIVATE", "fixed": false }
-                                          ]
-                                        },
-                                        {
-                                          "teamNumber": 2,
-                                          "members": [
-                                            { "participantId": 305, "displayName": "박지호", "major": "전기공학과", "visibility": "PUBLIC", "fixed": false }
-                                          ]
-                                        }
-                                      ],
-                                      "warnings": [
-                                        "성별 균형이 지켜지지 않았습니다.",
-                                        "운영진 1명으로는 2개 조를 모두 채울 수 없습니다."
-                                      ]
-                                    }
-                                    """))),
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = TeamGenerateResponse.class))),
             @ApiResponse(responseCode = "400", description = """
                     고정 멤버 지정이 잘못됐거나(공통 형식), 요청 값 검증에 실패함(공통 형식 아님).
                     입력값 검증 실패와 경로의 round 오타는 code 필드가 없는 스프링 기본 응답으로 나갑니다.""",
@@ -180,27 +157,8 @@ public interface AssignmentApi {
                     2차 참여를 선택하지 않은 참가자는 2차 편성을 볼 수 없습니다. 관리자는 참여하지 않더라도 조회할 수 있습니다.""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공. 조 번호 순으로 정렬된 조 목록을 돌려줍니다.",
-                    content = @Content(schema = @Schema(implementation = TeamListResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "round": "FIRST_ROUND",
-                                      "teams": [
-                                        {
-                                          "teamNumber": 1,
-                                          "members": [
-                                            { "participantId": 435, "displayName": "이서연", "major": "컴퓨터공학과", "visibility": "PUBLIC", "fixed": false },
-                                            { "participantId": 436, "displayName": "박지호", "major": "전기공학과", "visibility": "PRIVATE", "fixed": false }
-                                          ]
-                                        },
-                                        {
-                                          "teamNumber": 2,
-                                          "members": [
-                                            { "participantId": 434, "displayName": "김대현", "major": "컴퓨터공학과", "visibility": "PUBLIC", "fixed": true }
-                                          ]
-                                        }
-                                      ]
-                                    }
-                                    """))),
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = TeamListResponse.class))),
             @ApiResponse(responseCode = "400", description = "경로의 round 값이 enum에 없음. code 필드가 없는 스프링 기본 응답입니다.",
                     content = @Content(examples = @ExampleObject(value = """
                                 {
@@ -256,19 +214,8 @@ public interface AssignmentApi {
                     2차 편성이 아직 확정되지 않은 상태(BEFORE_SECOND_ROUND)에서 SECOND_ROUND로 부르면 409입니다.""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공. 내 조 번호와 조원 목록을 돌려줍니다.",
-                    content = @Content(schema = @Schema(implementation = MyTeamResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "round": "FIRST_ROUND",
-                                      "team": {
-                                        "teamNumber": 2,
-                                        "members": [
-                                          { "participantId": 304, "displayName": "김대현", "major": "컴퓨터공학과", "visibility": "PUBLIC", "fixed": false },
-                                          { "participantId": 309, "displayName": "최수아", "major": "산업디자인", "visibility": "PUBLIC", "fixed": true }
-                                        ]
-                                      }
-                                    }
-                                    """))),
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = MyTeamResponse.class))),
             @ApiResponse(responseCode = "400", description = "경로의 round 값이 enum에 없음. code 필드가 없는 스프링 기본 응답입니다.",
                     content = @Content(examples = @ExampleObject(value = """
                                 {
