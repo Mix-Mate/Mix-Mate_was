@@ -3,12 +3,14 @@ package com.mixmate.domain.assignment.dto;
 import com.mixmate.domain.assignment.entity.TeamAssignmentMember;
 import com.mixmate.domain.participant.entity.Participant;
 import com.mixmate.domain.participant.entity.ParticipantProfile;
+import com.mixmate.domain.participant.enums.Gender;
 import com.mixmate.domain.participant.enums.Visibility;
 
 public record TeamMemberDetail(
         Long participantId,
         String displayName,
         String major,
+        Gender gender,
         Visibility visibility,
         boolean fixed
 ) {
@@ -19,6 +21,7 @@ public record TeamMemberDetail(
                 participant.getParticipantId(),
                 profile.getDisplayName(),
                 profile.getMajor(),
+                profile.getGender(),
                 profile.getVisibility(),
                 member.isFixed()
         );
