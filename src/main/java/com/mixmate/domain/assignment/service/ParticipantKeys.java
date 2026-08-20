@@ -23,7 +23,6 @@ final class ParticipantKeys {
         KEYS.put(AssignmentCondition.GENDER_BALANCE, p -> p.getProfile().getGender());
         KEYS.put(AssignmentCondition.MBTI_BALANCE, p -> p.getProfile().getMbti().isExtrovert());
         KEYS.put(AssignmentCondition.GRADE_SPREAD, p -> p.getProfile().getGrade());
-        KEYS.put(AssignmentCondition.MAJOR_SPREAD, p -> p.getProfile().getMajor());
         KEYS.put(AssignmentCondition.NEWCOMER_SPREAD, p -> p.getProfile().isNew());
         KEYS.put(AssignmentCondition.POSITION_SPREAD, p -> p.getProfile().getPosition());
     }

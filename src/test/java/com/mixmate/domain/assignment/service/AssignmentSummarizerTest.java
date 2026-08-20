@@ -90,13 +90,14 @@ class AssignmentSummarizerTest {
     }
 
     @Test
-    @DisplayName("학과처럼 값이 많은 조건은 조를 다 채우지 못해도 경고하지 않는다")
+    @DisplayName("학년처럼 값이 많은 조건은 조를 다 채우지 못해도 경고하지 않는다")
     void doesNotWarnAboutShortageForConditionsWithManyValues() {
+        // 네 학년이 조마다 두 개씩만 들어가지만, 값이 많은 조건은 그것이 정상이라 경고 대상이 아니다
         Map<Integer, List<Participant>> teams = teams(
-                List.of(major("컴퓨터공학과"), major("전기공학과")),
-                List.of(major("경영학과"), major("심리학과")));
+                List.of(grade(Grade.FIRST), grade(Grade.SECOND)),
+                List.of(grade(Grade.THIRD), grade(Grade.FOURTH)));
 
-        assertThat(summarizer.warningsOf(teams, Set.of(AssignmentCondition.MAJOR_SPREAD))).isEmpty();
+        assertThat(summarizer.warningsOf(teams, Set.of(AssignmentCondition.GRADE_SPREAD))).isEmpty();
     }
 
     @Test
@@ -189,19 +190,19 @@ class AssignmentSummarizerTest {
     }
 
     @Test
-    @DisplayName("100명 10조에서 학과가 전원 달라도 경고가 없다")
+    @DisplayName("100명 10조에서 학년이 고르게 흩어져 있으면 경고가 없다")
     void handlesManyDistinctValues() {
         Map<Integer, List<Participant>> teams = new LinkedHashMap<>();
-        int major = 0;
+        int seq = 0;
         for (int teamNumber = 1; teamNumber <= 10; teamNumber++) {
             List<Participant> team = new ArrayList<>();
             for (int i = 0; i < 10; i++) {
-                team.add(major("학과" + major++));
+                team.add(grade(Grade.values()[seq++ % 4]));
             }
             teams.put(teamNumber, team);
         }
 
-        assertThat(summarizer.warningsOf(teams, Set.of(AssignmentCondition.MAJOR_SPREAD))).isEmpty();
+        assertThat(summarizer.warningsOf(teams, Set.of(AssignmentCondition.GRADE_SPREAD))).isEmpty();
     }
 
     // --- helpers ---
@@ -239,18 +240,22 @@ class AssignmentSummarizerTest {
         return participant(Gender.MALE, Position.MEMBER, "컴퓨터공학과", true);
     }
 
-    private Participant major(String major) {
-        return participant(Gender.MALE, Position.MEMBER, major, false);
+    private Participant grade(Grade grade) {
+        return participant(Gender.MALE, Position.MEMBER, "컴퓨터공학과", false, grade);
     }
 
     /** 경고는 프로필만 보고 계산하므로 영속화도 식별자도 필요 없다. */
     private Participant participant(Gender gender, Position position, String major, boolean isNew) {
+        return participant(gender, position, major, isNew, Grade.THIRD);
+    }
+
+    private Participant participant(Gender gender, Position position, String major, boolean isNew, Grade grade) {
         ParticipantProfile profile = ParticipantProfile.builder()
                 .displayName("참가자")
                 .position(position)
                 .major(major)
                 .isNew(isNew)
-                .grade(Grade.THIRD)
+                .grade(grade)
                 .gender(gender)
                 .mbti(Mbti.ISTP)
                 .age(24)
