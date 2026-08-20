@@ -33,7 +33,7 @@ public class AssignmentSummarizer {
     private static final int ALLOWED_SPREAD = 1;
 
     // 값이 두 가지뿐이라 "모든 조에 양쪽이 다 있어야" 의미가 사는 조건들.
-    // 학과·학년은 값이 많아 한 조에 특정 값이 없는 게 정상이므로 인원 부족을 따지지 않는다.
+    // 학년은 값이 많아 한 조에 특정 값이 없는 게 정상이므로 인원 부족을 따지지 않는다.
     private static final Set<AssignmentCondition> COVERAGE_CONDITIONS = EnumSet.of(
             AssignmentCondition.GENDER_BALANCE,
             AssignmentCondition.MBTI_BALANCE,
@@ -119,7 +119,6 @@ public class AssignmentSummarizer {
             case GENDER_BALANCE -> "성별 균형";
             case MBTI_BALANCE -> "MBTI 균형";
             case GRADE_SPREAD -> "학년 분산";
-            case MAJOR_SPREAD -> "학과 분산";
             case NEWCOMER_SPREAD -> "신입 분산";
             case POSITION_SPREAD -> "직급 분산";
         };
@@ -131,7 +130,7 @@ public class AssignmentSummarizer {
             case MBTI_BALANCE -> Boolean.TRUE.equals(value) ? "외향형(E)" : "내향형(I)";
             case NEWCOMER_SPREAD -> Boolean.TRUE.equals(value) ? "신입" : "기존 참가자";
             case POSITION_SPREAD -> value == Position.STAFF ? "운영진" : "일반 참가자";
-            case GRADE_SPREAD, MAJOR_SPREAD -> String.valueOf(value);
+            case GRADE_SPREAD -> String.valueOf(value);
         };
     }
 }
