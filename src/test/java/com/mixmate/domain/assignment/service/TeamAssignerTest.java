@@ -70,12 +70,13 @@ class TeamAssignerTest {
     }
 
     @Test
-    @DisplayName("학과가 전원 달라 어느 조에 넣어도 벌점이 0이어도 인원은 고르게 나뉜다")
+    @DisplayName("학년이 고르게 흩어져 벌점이 0인 배치가 많아도 인원은 고르게 나뉜다")
     void balancesWhenNoParticipantSharesKey() {
-        List<Participant> participants = participants(12, i -> withMajor("학과" + i));
+        // 12명을 네 학년으로 3명씩. 조마다 학년이 겹치지 않게 담을 수 있어 벌점 0인 배치가 여럿 나온다.
+        List<Participant> participants = participants(12, i -> withGrade(Grade.values()[i % 4]));
 
         Map<Integer, List<Participant>> teams =
-                assigner.assign(participants, 3, Set.of(AssignmentCondition.MAJOR_SPREAD), Map.of());
+                assigner.assign(participants, 3, Set.of(AssignmentCondition.GRADE_SPREAD), Map.of());
 
         assertThat(spread(teams, p -> true)).isLessThanOrEqualTo(1);
     }
@@ -145,7 +146,7 @@ class TeamAssignerTest {
         List<Participant> participants = participants(12, i -> basic());
 
         Map<Integer, List<Participant>> teams =
-                assigner.assign(participants, 3, Set.of(AssignmentCondition.MAJOR_SPREAD), Map.of());
+                assigner.assign(participants, 3, Set.of(AssignmentCondition.GRADE_SPREAD), Map.of());
 
         assertThat(flatten(teams)).containsExactlyInAnyOrderElementsOf(participants);
         assertThat(spread(teams, p -> true)).isLessThanOrEqualTo(1);
@@ -207,8 +208,8 @@ class TeamAssignerTest {
         return participant(Gender.MALE, Grade.THIRD, Position.MEMBER, mbti, "컴퓨터공학과", false);
     }
 
-    private Participant withMajor(String major) {
-        return participant(Gender.MALE, Grade.THIRD, Position.MEMBER, Mbti.ISTP, major, false);
+    private Participant withGrade(Grade grade) {
+        return participant(Gender.MALE, grade, Position.MEMBER, Mbti.ISTP, "컴퓨터공학과", false);
     }
 
     private Participant withPosition(Position position) {
