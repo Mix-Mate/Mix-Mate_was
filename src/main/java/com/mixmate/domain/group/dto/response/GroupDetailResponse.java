@@ -5,12 +5,15 @@ import com.mixmate.domain.group.enums.GroupStatus;
 import com.mixmate.domain.participant.entity.Participant;
 import com.mixmate.domain.participant.enums.Role;
 
+import java.time.LocalDateTime;
+
 public record GroupDetailResponse(
         Long groupId,
         String groupName,
         String description,
         GroupStatus status,
         String inviteCode,
+        LocalDateTime createdAt,
         long memberCount,
         Role myRole,
         Long myParticipantId
@@ -23,6 +26,7 @@ public record GroupDetailResponse(
                 group.getDescription(),
                 group.getStatus(),
                 group.getInviteCode(),
+                group.getCreatedAt(),
                 memberCount,
                 me.getRole(),
                 me.getParticipantId()
