@@ -52,8 +52,8 @@ public interface AssignmentApi {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = TeamGenerateResponse.class))),
             @ApiResponse(responseCode = "400", description = """
-                    고정 멤버 지정이 잘못됐거나(공통 형식), 요청 값 검증에 실패함(공통 형식 아님).
-                    입력값 검증 실패와 경로의 round 오타는 code 필드가 없는 스프링 기본 응답으로 나갑니다.""",
+                    고정 멤버 지정이 잘못됐거나, 요청 값 검증에 실패함. 모두 공통 형식입니다.
+                    어느 입력값이 문제인지 짚을 수 있는 경우 errors에 필드명과 사유가 함께 실립니다.""",
                     content = @Content(examples = {
                             @ExampleObject(name = "고정 멤버 오류", value = """
                                         { "code": "INVALID_PARAMETER", "message": "조 편성 대상이 아닌 참가자는 고정할 수 없습니다." }
@@ -67,12 +67,18 @@ public interface AssignmentApi {
                             @ExampleObject(name = "고정 후 남은 인원으로 조를 다 못 채움", value = """
                                         { "code": "INVALID_PARAMETER", "message": "고정하고 남은 인원으로는 모든 조를 채울 수 없습니다." }
                                     """),
-                            @ExampleObject(name = "입력값 검증 실패 (code 없음)", value = """
+                            @ExampleObject(name = "입력값 검증 실패", value = """
                                         {
-                                          "timestamp": "2026-08-16T06:42:06.595+00:00",
-                                          "status": 400,
-                                          "error": "Bad Request",
-                                          "path": "/api/v1/groups/1/rounds/FIRST_ROUND/teams/generate"
+                                          "code": "INVALID_PARAMETER",
+                                          "message": "입력값이 올바르지 않습니다.",
+                                          "errors": { "teamCount": "조는 2개 이상이어야 합니다." }
+                                        }
+                                    """),
+                            @ExampleObject(name = "conditions에 없는 값", value = """
+                                        {
+                                          "code": "INVALID_PARAMETER",
+                                          "message": "'GENDER'은(는) 허용되지 않는 값입니다.",
+                                          "errors": { "conditions": "'GENDER'은(는) 허용되지 않는 값입니다." }
                                         }
                                     """)
                     })),
@@ -164,13 +170,12 @@ public interface AssignmentApi {
                     + "편성 실행 응답과 조 개수가 항상 같습니다.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = TeamListResponse.class))),
-            @ApiResponse(responseCode = "400", description = "경로의 round 값이 enum에 없음. code 필드가 없는 스프링 기본 응답입니다.",
+            @ApiResponse(responseCode = "400", description = "경로의 round 값이 enum에 없음",
                     content = @Content(examples = @ExampleObject(value = """
                                 {
-                                  "timestamp": "2026-08-16T10:04:40.839+00:00",
-                                  "status": 400,
-                                  "error": "Bad Request",
-                                  "path": "/api/v1/groups/1/rounds/THIRD_ROUND/teams"
+                                  "code": "INVALID_PARAMETER",
+                                  "message": "'THIRD_ROUND'은(는) 허용되지 않는 값입니다.",
+                                  "errors": { "round": "'THIRD_ROUND'은(는) 허용되지 않는 값입니다." }
                                 }
                             """))),
             @ApiResponse(responseCode = "401", description = "인증 없음",
@@ -221,13 +226,12 @@ public interface AssignmentApi {
             @ApiResponse(responseCode = "200", description = "조회 성공. 내 조 번호와 조원 목록을 돌려줍니다.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = MyTeamResponse.class))),
-            @ApiResponse(responseCode = "400", description = "경로의 round 값이 enum에 없음. code 필드가 없는 스프링 기본 응답입니다.",
+            @ApiResponse(responseCode = "400", description = "경로의 round 값이 enum에 없음",
                     content = @Content(examples = @ExampleObject(value = """
                                 {
-                                  "timestamp": "2026-08-16T06:42:06.595+00:00",
-                                  "status": 400,
-                                  "error": "Bad Request",
-                                  "path": "/api/v1/groups/1/rounds/FIRST_ROUND/teams/my-team"
+                                  "code": "INVALID_PARAMETER",
+                                  "message": "'THIRD_ROUND'은(는) 허용되지 않는 값입니다.",
+                                  "errors": { "round": "'THIRD_ROUND'은(는) 허용되지 않는 값입니다." }
                                 }
                             """))),
             @ApiResponse(responseCode = "401", description = "인증 없음",

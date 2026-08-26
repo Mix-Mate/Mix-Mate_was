@@ -1,6 +1,7 @@
 package com.mixmate.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 import java.util.Map;
@@ -15,10 +16,15 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorDto {
 
+    @Schema(description = "ErrorCode 상수 이름", example = "INVALID_PARAMETER")
     private final String code;
 
+    @Schema(description = "에러 메시지", example = "입력값이 올바르지 않습니다.")
     private final String message;
 
+    @Schema(description = "잘못된 입력값과 그 사유. 입력값이 잘못된 400에만 실리고 그 외에는 키가 없습니다. "
+            + "한 필드에 검증이 여러 개 걸린 경우 먼저 걸린 하나만 담깁니다.",
+            example = "{\"email\": \"이메일은 필수입니다.\"}")
     private final Map<String, String> errors;
 
     public ErrorDto(ErrorCode errorCode, String message) {
