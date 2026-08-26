@@ -35,6 +35,7 @@ public interface AssignmentApi {
                     조건과 무관하게 조별 인원은 항상 고르게 나뉘므로, 인원 균등은 조건으로 보내지 않습니다.
                     고정 멤버(fixedMembers)는 지정한 조에 먼저 배치되고 나머지가 조건에 따라 흩어집니다. 없으면 빈 배열입니다.
                     고정 멤버를 한 조에 몰아넣지 않는 한 조별 인원 차이는 1명 이하입니다.
+                    고정하고 남은 인원이 고정 멤버가 없는 조의 개수보다 적으면 빈 조가 생기므로 요청이 거부됩니다.
 
                     1차는 그룹 참가자 전원이, 2차는 2차 참여를 선택한 인원만 대상입니다.
 
@@ -62,6 +63,9 @@ public interface AssignmentApi {
                                     """),
                             @ExampleObject(name = "중복 고정", value = """
                                         { "code": "INVALID_PARAMETER", "message": "같은 참가자를 두 번 고정할 수 없습니다." }
+                                    """),
+                            @ExampleObject(name = "고정 후 남은 인원으로 조를 다 못 채움", value = """
+                                        { "code": "INVALID_PARAMETER", "message": "고정하고 남은 인원으로는 모든 조를 채울 수 없습니다." }
                                     """),
                             @ExampleObject(name = "입력값 검증 실패 (code 없음)", value = """
                                         {
@@ -156,7 +160,8 @@ public interface AssignmentApi {
                     조 편성이 확정된 뒤에만 볼 수 있습니다. 편성 실행 응답과 같은 형식입니다.
                     2차 참여를 선택하지 않은 참가자는 2차 편성을 볼 수 없습니다. 관리자는 참여하지 않더라도 조회할 수 있습니다.""")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "조회 성공. 조 번호 순으로 정렬된 조 목록을 돌려줍니다.",
+            @ApiResponse(responseCode = "200", description = "조회 성공. 1번부터 조 개수만큼 조 번호 순으로 돌려줍니다. "
+                    + "편성 실행 응답과 조 개수가 항상 같습니다.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = TeamListResponse.class))),
             @ApiResponse(responseCode = "400", description = "경로의 round 값이 enum에 없음. code 필드가 없는 스프링 기본 응답입니다.",
