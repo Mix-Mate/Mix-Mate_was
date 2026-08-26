@@ -196,6 +196,7 @@ public class AssignmentService {
     /**
      * 요청으로 들어온 고정 멤버를 참가자 id → 조 번호 맵으로 바꾸면서 함께 검증한다.
      * 클라이언트가 보낸 값이므로 이 그룹 참가자인지, 조 번호가 실재하는지, 중복 지정은 없는지 여기서 걸러낸다.
+     * 마지막으로 고정하고 남은 인원이 모든 조를 채울 수 있는지 확인한다. 한 조에 몰아넣으면 다른 조가 빈 채로 확정된다.
      */
     private Map<Long, Integer> toFixedMembers(TeamGenerateRequest dto, List<Participant> participants) {
         Set<Long> participantIds = participants.stream()
