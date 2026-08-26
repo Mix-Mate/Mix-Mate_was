@@ -23,7 +23,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -154,9 +156,11 @@ public class AssignmentService {
                         .collect(Collectors.groupingBy(TeamAssignmentMember::getTeamNumber,
                                 LinkedHashMap::new, Collectors.toList()));
 
-        List<TeamDetail> teams = membersByTeam.entrySet().stream()
-                .map(entry -> TeamDetail.of(entry.getKey(), entry.getValue()))
-                .toList();
+        List<TeamDetail> teams = new ArrayList<>();
+        for (int n = 1; n <= assignment.getTeamCount(); n++) {
+            List<TeamAssignmentMember> team = membersByTeam.getOrDefault(n, List.of());
+            teams.add(TeamDetail.of(n, team));
+        }
 
         return new TeamListResponse(round, teams);
     }
@@ -209,6 +213,13 @@ public class AssignmentService {
             if (fixedMembers.put(fixedMember.participantId(), fixedMember.teamNumber()) != null) {
                 throw new CustomException(ErrorCode.INVALID_PARAMETER, "같은 참가자를 두 번 고정할 수 없습니다.");
             }
+        }
+
+        // 빈 조 발생을 방지하기 위해 고정되지 않은 인원수가 비어있는 조의 개수보다 많도록 한다.
+        int unfixed = participants.size() - fixedMembers.size();
+        int teamsWithoutFixed = dto.teamCount() - new HashSet<>(fixedMembers.values()).size();
+        if (unfixed < teamsWithoutFixed) {
+            throw new CustomException(ErrorCode.INVALID_PARAMETER, "고정하고 남은 인원으로는 모든 조를 채울 수 없습니다.");
         }
         return fixedMembers;
     }
