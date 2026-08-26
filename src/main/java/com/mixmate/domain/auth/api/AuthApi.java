@@ -66,6 +66,14 @@ public interface AuthApi {
             @ApiResponse(responseCode = "200", description = "로그인 성공",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = LoginResDto.class))),
+            @ApiResponse(responseCode = "400", description = "이메일 또는 비밀번호 누락, 이메일 형식 오류",
+                    content = @Content(examples = @ExampleObject(value = """
+                                {
+                                  "code": "INVALID_PARAMETER",
+                                  "message": "입력값이 올바르지 않습니다.",
+                                  "errors": { "email": "올바른 이메일 형식이 아닙니다." }
+                                }
+                            """))),
             @ApiResponse(responseCode = "401", description = "비밀번호 불일치",
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "INVALID_PASSWORD", "message": "이메일 또는 비밀번호가 일치하지 않습니다." }
@@ -76,7 +84,7 @@ public interface AuthApi {
                             """)))
     })
     @PostMapping("/login")
-    ResponseEntity<LoginResDto> login(@RequestBody LoginReqDto loginReqDto);
+    ResponseEntity<LoginResDto> login(@Valid @RequestBody LoginReqDto loginReqDto);
 
     @Operation(summary = "로그아웃",
             description = "accessToken 쿠키를 읽어 refreshToken을 삭제하고 accessToken을 블랙리스트에 등록한 뒤, 클라이언트 쿠키를 만료시킵니다. "
