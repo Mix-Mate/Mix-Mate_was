@@ -76,7 +76,7 @@ public interface AuthApi {
                             """)))
     })
     @PostMapping("/login")
-    ResponseEntity<LoginResDto> login(@RequestBody LoginReqDto loginReqDto);
+    ResponseEntity<LoginResDto> login(@Valid @RequestBody LoginReqDto loginReqDto);
 
     @Operation(summary = "로그아웃",
             description = "accessToken 쿠키를 읽어 refreshToken을 삭제하고 accessToken을 블랙리스트에 등록한 뒤, 클라이언트 쿠키를 만료시킵니다. "

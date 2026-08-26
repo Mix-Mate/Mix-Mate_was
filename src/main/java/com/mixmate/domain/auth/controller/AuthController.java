@@ -57,7 +57,7 @@ public class AuthController implements AuthApi {
 
     // 로그인 API
     @PostMapping("/login")
-    public ResponseEntity<LoginResDto> login(@RequestBody LoginReqDto loginReqDto) {
+    public ResponseEntity<LoginResDto> login(@Valid @RequestBody LoginReqDto loginReqDto) {
         // 토큰과 유저 정보 가져오기
         LoginResDto loginRes = authService.login(loginReqDto);
 
