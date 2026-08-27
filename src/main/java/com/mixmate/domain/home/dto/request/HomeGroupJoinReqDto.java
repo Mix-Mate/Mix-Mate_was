@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class HomeGroupJoinReqDto {
 
-    @Schema(description = "입장할 그룹의 참여코드. verify로 미리 확인한 코드를 그대로 사용", example = "BZRWXTHD")
+    @Schema(description = "입장할 그룹의 참여코드. verify로 미리 확인한 코드를 그대로 사용", example = "BZRWXT")
     @NotBlank(message = "참여코드를 입력해주세요.")
     private final String inviteCode;
 
