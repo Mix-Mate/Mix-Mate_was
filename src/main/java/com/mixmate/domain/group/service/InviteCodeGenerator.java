@@ -12,7 +12,7 @@ public class InviteCodeGenerator {
 
     // 혼동되는 문자 제외: 0/O, 1/I/l
     private static final String CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    private static final int LENGTH = 8;
+    private static final int LENGTH = 6;
 
     private final SecureRandom random = new SecureRandom();
 
