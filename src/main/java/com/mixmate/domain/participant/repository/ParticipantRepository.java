@@ -31,6 +31,8 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
 
     List<Participant> findByGroupAndRoundParticipation(Group group, RoundParticipation roundParticipation);
 
+    long countByGroupAndRoundParticipation(Group group, RoundParticipation roundParticipation);
+
     Optional<Participant> findByParticipantIdAndGroup(Long participantId, Group group);
 
     /** scope=me&state=active — FINISHED를 제외한 그룹만 조회할 때 사용 */
