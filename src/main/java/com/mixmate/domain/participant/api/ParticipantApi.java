@@ -220,6 +220,14 @@ public interface ParticipantApi {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "삭제 성공. 실행해둔 조 편성이 있었다면 초기화됩니다.",
                     content = @Content),
+            @ApiResponse(responseCode = "400", description = "차단 사유가 50자를 넘음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                {
+                                  "code": "INVALID_PARAMETER",
+                                  "message": "입력값이 올바르지 않습니다.",
+                                  "errors": { "reason": "차단 사유는 50자를 넘을 수 없습니다." }
+                                }
+                            """))),
             @ApiResponse(responseCode = "401", description = "인증 없음",
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
