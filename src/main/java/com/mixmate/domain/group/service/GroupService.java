@@ -132,6 +132,7 @@ public class GroupService {
         if (!group.getStatus().canFinish()) {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "투표 종료 후 또는 2차 진행 중에만 모임을 종료할 수 있습니다.");
         }
+        groupBanRepository.deleteAllByGroup(group);
         group.finish();
     }
 }

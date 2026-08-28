@@ -20,7 +20,7 @@ public interface GroupBanRepository extends JpaRepository<GroupBan, Long> {
 
     long deleteByGroupAndUser_UserId(Group group, Long userId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("DELETE FROM GroupBan b WHERE b.group = :group")
     void deleteAllByGroup(@Param("group") Group group);
 }
