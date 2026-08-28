@@ -11,6 +11,7 @@ import com.mixmate.domain.group.enums.GroupStatus;
 import com.mixmate.domain.group.repository.GroupBanRepository;
 import com.mixmate.domain.group.repository.GroupRepository;
 import com.mixmate.domain.participant.entity.Participant;
+import com.mixmate.domain.participant.enums.RoundParticipation;
 import com.mixmate.domain.participant.repository.ParticipantRepository;
 import com.mixmate.domain.participant.service.GroupMembership;
 import com.mixmate.exception.CustomException;
@@ -35,6 +36,7 @@ public class GroupService {
     private final GroupMembership groupMembership;
 
     private final static int MAX_LOOP_COUNT = 5;
+    private final static int MIN_SECOND_ROUND_PARTICIPANTS = 8;
 
     /**
      * 새 그룹을 생성하고, 생성자를 관리자(HOST) 겸 첫 참가자로 등록합니다.
@@ -121,6 +123,11 @@ public class GroupService {
         if (group.getStatus() == GroupStatus.BEFORE_SECOND_ROUND) return;
         if (group.getStatus() != GroupStatus.VOTE_CLOSED) {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "투표가 종료된 뒤에만 2차를 진행할 수 있습니다.");
+        }
+        if (participantRepository.countByGroupAndRoundParticipation(group, RoundParticipation.FIRST_AND_SECOND)
+                < MIN_SECOND_ROUND_PARTICIPANTS) {
+            throw new CustomException(ErrorCode.INSUFFICIENT_PARTICIPANTS,
+                    "2차 참여 인원이 %d명 이상이어야 합니다.".formatted(MIN_SECOND_ROUND_PARTICIPANTS));
         }
         group.decideSecondRound();
     }
