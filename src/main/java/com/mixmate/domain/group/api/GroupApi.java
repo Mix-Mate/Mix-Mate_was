@@ -213,6 +213,7 @@ public interface GroupApi {
     @Operation(summary = "2차 술자리 진행",
             description = "투표가 종료된 뒤 관리자가 2차 진행을 결정합니다. "
                     + "그룹 상태가 BEFORE_SECOND_ROUND로 바뀌어 2차 조 편성을 할 수 있게 됩니다. "
+                    + "2차 참여를 선택한 인원이 8명 이상이어야 하며, 미달이면 2차 없이 모임을 종료해야 합니다. "
                     + "2차에는 투표가 없습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "2차 진행 결정 성공. 이미 2차 조 편성 대기 중인 그룹에 다시 호출해도 204입니다."),
@@ -233,10 +234,15 @@ public interface GroupApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
-            @ApiResponse(responseCode = "409", description = "투표 종료 상태가 아님(2차 조 편성 대기 이후 단계 포함)",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "투표가 종료된 뒤에만 2차를 진행할 수 있습니다." }
-                            """)))
+            @ApiResponse(responseCode = "409", description = "투표 종료 상태가 아니거나, 2차 참여 인원이 부족함",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "투표 종료 전", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "투표가 종료된 뒤에만 2차를 진행할 수 있습니다." }
+                                    """),
+                            @ExampleObject(name = "2차 인원 부족", value = """
+                                        { "code": "INSUFFICIENT_PARTICIPANTS", "message": "2차 참여 인원이 8명 이상이어야 합니다." }
+                                    """)
+                    }))
     })
     @PostMapping("/{groupId}/second-round")
     ResponseEntity<Void> decideSecondRound(
