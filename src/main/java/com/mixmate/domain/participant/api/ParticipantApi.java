@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -254,6 +255,7 @@ public interface ParticipantApi {
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(description = "삭제할 참가자 식별자", required = true) @PathVariable Long participantId,
             @Parameter(description = "차단 사유. 차단 목록에만 노출되며 생략할 수 있습니다.")
+            @Size(max = 50, message = "차단 사유는 50자를 넘을 수 없습니다.")
             @RequestParam(required = false) String reason,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );

@@ -2,6 +2,8 @@ package com.mixmate.exception;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -96,6 +98,25 @@ public class GlobalExceptionHandler {
             }
         }
         return badRequest("요청 본문을 읽을 수 없습니다.", null);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorDto> handleConstraintViolation(ConstraintViolationException e) {
+        // propertyPath가 "메서드명.파라미터명"으로 오므로 마지막 마디만 남겨 본문 검증과 같은 모양으로 맞춘다.
+        Map<String, String> errors = e.getConstraintViolations().stream()
+                .collect(Collectors.toMap(
+                        violation -> lastNodeOf(violation.getPropertyPath()),
+                        violation -> Objects.requireNonNullElse(
+                                violation.getMessage(), ErrorCode.INVALID_PARAMETER.getMessage()),
+                        (first, second) -> first,
+                        LinkedHashMap::new));
+
+        return badRequest(ErrorCode.INVALID_PARAMETER.getMessage(), errors);
+    }
+
+    private String lastNodeOf(Path propertyPath) {
+        String path = propertyPath.toString();
+        return path.substring(path.lastIndexOf('.') + 1);
     }
 
     private ResponseEntity<ErrorDto> badRequest(String message, Map<String, String> errors) {
