@@ -220,12 +220,12 @@ public interface ParticipantApi {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "삭제 성공. 실행해둔 조 편성이 있었다면 초기화됩니다.",
                     content = @Content),
-            @ApiResponse(responseCode = "400", description = "차단 사유가 50자를 넘음",
+            @ApiResponse(responseCode = "400", description = "차단 사유가 30자를 넘음",
                     content = @Content(examples = @ExampleObject(value = """
                                 {
                                   "code": "INVALID_PARAMETER",
                                   "message": "입력값이 올바르지 않습니다.",
-                                  "errors": { "reason": "차단 사유는 50자를 넘을 수 없습니다." }
+                                  "errors": { "reason": "차단 사유는 30자를 넘을 수 없습니다." }
                                 }
                             """))),
             @ApiResponse(responseCode = "401", description = "인증 없음",
@@ -263,7 +263,7 @@ public interface ParticipantApi {
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(description = "삭제할 참가자 식별자", required = true) @PathVariable Long participantId,
             @Parameter(description = "차단 사유. 차단 목록에만 노출되며 생략할 수 있습니다.")
-            @Size(max = 50, message = "차단 사유는 50자를 넘을 수 없습니다.")
+            @Size(max = 30, message = "차단 사유는 30자를 넘을 수 없습니다.")
             @RequestParam(required = false) String reason,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );

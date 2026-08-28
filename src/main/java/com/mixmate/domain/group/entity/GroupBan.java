@@ -42,7 +42,7 @@ public class GroupBan {
     @Column(nullable = false)
     private String displayName;
 
-    @Column(length = 50)
+    @Column(length = 30)
     private String reason;
 
     @CreatedDate
