@@ -1,7 +1,11 @@
 package com.mixmate.domain.participant.service;
 
+import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.group.entity.Group;
+import com.mixmate.domain.group.entity.GroupBan;
 import com.mixmate.domain.group.enums.GroupStatus;
+import com.mixmate.domain.group.repository.GroupBanRepository;
+import com.mixmate.domain.group.repository.GroupRepository;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
 import com.mixmate.domain.participant.dto.response.MyProfileResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
@@ -29,6 +33,8 @@ import java.util.List;
 public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
+    private final GroupRepository groupRepository;
+    private final GroupBanRepository groupBanRepository;
     private final GroupMembership groupMembership;
     private final AssignmentReset assignmentReset;
 
@@ -121,6 +127,9 @@ public class ParticipantService {
      */
     @Transactional
     public void deleteParticipant(Long groupId, Long targetParticipantId, Long userId) {
+        groupRepository.findWithLockByGroupId(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "그룹정보가 없습니다."));
+
         Group group = groupMembership.getHost(groupId, userId).getGroup();
 
         if (!group.getStatus().isBeforeFirstAssignment())
@@ -131,9 +140,22 @@ public class ParticipantService {
         if (targetParticipant.getRole() == Role.HOST)
             throw new CustomException(ErrorCode.FORBIDDEN, "호스트 본인은 삭제할 수 없습니다.");
 
+        // 차단은 계정에 있는 경우에만 수행한다.
+        User targetUser = targetParticipant.getUser();
+        if (targetUser != null) {
+            GroupBan ban = GroupBan.create(targetUser, group, targetParticipant.getProfile().getDisplayName());
+            groupBanRepository.save(ban);
+        }
+
         // 명단이 바뀐 편성은 틀린 결과다. 지운 뒤 관리자가 다시 편성한다.
         assignmentReset.resetByGroup(group);
         participantRepository.delete(targetParticipant);
+    }
+
+    @Transactional
+    public void unbanUser(Long groupId, Long targetUserId, Long userId) {
+        Group group = groupMembership.getHost(groupId, userId).getGroup();
+        groupBanRepository.deleteByGroupAndUser_UserId(group, targetUserId);
     }
 
     /**
