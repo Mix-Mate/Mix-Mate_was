@@ -252,6 +252,8 @@ public interface ParticipantApi {
     ResponseEntity<Void> deleteParticipant(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(description = "삭제할 참가자 식별자", required = true) @PathVariable Long participantId,
+            @Parameter(description = "차단 사유. 차단 목록에만 노출되며 생략할 수 있습니다.")
+            @RequestParam(required = false) String reason,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 

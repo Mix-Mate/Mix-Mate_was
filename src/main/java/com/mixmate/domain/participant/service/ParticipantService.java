@@ -4,6 +4,8 @@ import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.entity.GroupBan;
 import com.mixmate.domain.group.enums.GroupStatus;
+import com.mixmate.domain.group.dto.GroupBanSummary;
+import com.mixmate.domain.group.dto.response.GroupBanListResponse;
 import com.mixmate.domain.group.repository.GroupBanRepository;
 import com.mixmate.domain.group.repository.GroupRepository;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
@@ -126,7 +128,7 @@ public class ParticipantService {
      * 관리자(HOST)가 1차 진행 이전에 다른 참가자를 그룹에서 삭제합니다.
      */
     @Transactional
-    public void deleteParticipant(Long groupId, Long targetParticipantId, Long userId) {
+    public void deleteParticipant(Long groupId, Long targetParticipantId, String reason, Long userId) {
         groupRepository.findWithLockByGroupId(groupId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "그룹정보가 없습니다."));
 
@@ -143,13 +145,22 @@ public class ParticipantService {
         // 차단은 계정에 있는 경우에만 수행한다.
         User targetUser = targetParticipant.getUser();
         if (targetUser != null) {
-            GroupBan ban = GroupBan.create(targetUser, group, targetParticipant.getProfile().getDisplayName());
+            GroupBan ban = GroupBan.create(targetUser, group, targetParticipant.getProfile().getDisplayName(), reason);
             groupBanRepository.save(ban);
         }
 
         // 명단이 바뀐 편성은 틀린 결과다. 지운 뒤 관리자가 다시 편성한다.
         assignmentReset.resetByGroup(group);
         participantRepository.delete(targetParticipant);
+    }
+
+    @Transactional(readOnly = true)
+    public GroupBanListResponse getBannedUsers(Long groupId, Long userId) {
+        Group group = groupMembership.getHost(groupId, userId).getGroup();
+
+        return new GroupBanListResponse(groupBanRepository.findAllByGroupWithUser(group).stream()
+                .map(GroupBanSummary::from)
+                .toList());
     }
 
     @Transactional

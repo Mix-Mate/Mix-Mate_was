@@ -42,18 +42,22 @@ public class GroupBan {
     @Column(nullable = false)
     private String displayName;
 
+    @Column(length = 50)
+    private String reason;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // 생성자와 시그니처가 같지만, 다른 엔티티처럼 생성 경로를 팩토리 하나로 고정해 둔다. (일관성)
-    public static GroupBan create(User user, Group group, String displayName) {
-        return new GroupBan(user, group, displayName);
+    // 생성자와 시그니처가 같지만, 다른 엔티티처럼 생성 경로를 팩토리 하나로 고정해 둔다.(다른 코드 스타일 과의 일관성)
+    public static GroupBan create(User user, Group group, String displayName, String reason) {
+        return new GroupBan(user, group, displayName, reason);
     }
 
-    private GroupBan(User user, Group group, String displayName) {
+    private GroupBan(User user, Group group, String displayName, String reason) {
         this.user = user;
         this.group = group;
         this.displayName = displayName;
+        this.reason = reason;
     }
 }

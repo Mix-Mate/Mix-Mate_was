@@ -106,9 +106,10 @@ public class ParticipantController implements ParticipantApi {
     public ResponseEntity<Void> deleteParticipant(
             @PathVariable Long groupId,
             @PathVariable Long participantId,
+            @RequestParam(required = false) String reason,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        participantService.deleteParticipant(groupId, participantId, userDetails.getUserId());
+        participantService.deleteParticipant(groupId, participantId, reason, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 

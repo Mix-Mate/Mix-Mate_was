@@ -14,7 +14,9 @@ public interface GroupBanRepository extends JpaRepository<GroupBan, Long> {
 
     boolean existsByGroupAndUser(Group group, User user);
 
-    List<GroupBan> findByGroupOrderByCreatedAtDesc(Group group);
+    // 응답에 이메일이 들어가 user 프록시가 반드시 초기화된다. 함께 가져오지 않으면 차단 수만큼 SELECT가 더 나간다.
+    @Query("SELECT b FROM GroupBan b JOIN FETCH b.user WHERE b.group = :group ORDER BY b.createdAt DESC")
+    List<GroupBan> findAllByGroupWithUser(@Param("group") Group group);
 
     long deleteByGroupAndUser_UserId(Group group, Long userId);
 
