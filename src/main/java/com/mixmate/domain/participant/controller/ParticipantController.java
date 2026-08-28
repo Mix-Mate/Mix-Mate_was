@@ -1,5 +1,6 @@
 package com.mixmate.domain.participant.controller;
 
+import com.mixmate.domain.group.dto.response.GroupBanListResponse;
 import com.mixmate.domain.participant.api.ParticipantApi;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
 import com.mixmate.domain.participant.dto.response.MyProfileResponse;
@@ -12,12 +13,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/v1/groups")
 public class ParticipantController implements ParticipantApi {
 
@@ -106,9 +109,10 @@ public class ParticipantController implements ParticipantApi {
     public ResponseEntity<Void> deleteParticipant(
             @PathVariable Long groupId,
             @PathVariable Long participantId,
+            @RequestParam(required = false) String reason,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        participantService.deleteParticipant(groupId, participantId, userDetails.getUserId());
+        participantService.deleteParticipant(groupId, participantId, reason, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 
@@ -127,5 +131,34 @@ public class ParticipantController implements ParticipantApi {
         Long participantId = participantService.addParticipant(dto, groupId, userDetails.getUserId());
         URI location = URI.create("/api/v1/groups/" + groupId + "/participants/" + participantId);
         return ResponseEntity.created(location).build();
+    }
+
+    /**
+     * 관리자가 이 그룹에서 차단한 사용자 목록을 조회합니다.
+     * @param groupId 요청 그룹 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 최근 차단순 차단 목록
+     */
+    public ResponseEntity<GroupBanListResponse> getBannedUsers(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(participantService.getBannedUsers(groupId, userDetails.getUserId()));
+    }
+
+    /**
+     * 관리자가 차단을 해제해 해당 사용자의 재입장을 허용합니다.
+     * @param groupId 요청 그룹 식별자
+     * @param targetUserId 차단을 해제할 사용자 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 본문 없는 204
+     */
+    public ResponseEntity<Void> unbanUser(
+            @PathVariable Long groupId,
+            @PathVariable Long targetUserId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        participantService.unbanUser(groupId, targetUserId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
     }
 }

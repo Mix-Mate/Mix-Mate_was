@@ -2,6 +2,8 @@ package com.mixmate.exception;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -19,9 +21,9 @@ import java.util.stream.Collectors;
 /**
  * 컨트롤러에서 빠져나온 예외를 명세서의 공통 에러 응답 포맷으로 변환합니다.
  *
- * 잘못된 입력이 400으로 나가는 경로는 네 가지입니다. 본문 필드 검증 실패, 경로 변수의 타입 불일치,
- * 필수 쿼리 파라미터 누락, 본문을 읽다 실패한 경우이며 넷 다 INVALID_PARAMETER로 모읍니다.
- * 하나라도 빠지면 400 응답 형식이 두 가지로 갈리므로 함께 처리합니다.
+ * 잘못된 입력이 400으로 나가는 경로는 다섯 가지입니다. 본문 필드 검증 실패, 경로 변수의 타입 불일치,
+ * 필수 쿼리 파라미터 누락, 본문을 읽다 실패한 경우, 쿼리 파라미터가 제약에 걸린 경우이며
+ * 다섯 다 INVALID_PARAMETER로 모읍니다. 하나라도 빠지면 400 응답 형식이 갈리므로 함께 처리합니다.
  *
  * 인증 실패(401)와 권한 없음(403)은 시큐리티 필터 단계에서 끝나므로 이곳을 거치지 않고,
  * CustomAuthenticationEntryPoint / CustomAccessDeniedHandler가 처리합니다.
@@ -96,6 +98,28 @@ public class GlobalExceptionHandler {
             }
         }
         return badRequest("요청 본문을 읽을 수 없습니다.", null);
+    }
+
+    /**
+     * 컨트롤러 파라미터에 붙인 제약에 걸린 경우. @Validated가 있는 컨트롤러에서만 발생합니다.
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorDto> handleConstraintViolation(ConstraintViolationException e) {
+        // propertyPath가 "메서드명.파라미터명"으로 오므로 마지막 마디만 남겨 본문 검증과 같은 모양으로 맞춘다.
+        Map<String, String> errors = e.getConstraintViolations().stream()
+                .collect(Collectors.toMap(
+                        violation -> lastNodeOf(violation.getPropertyPath()),
+                        violation -> Objects.requireNonNullElse(
+                                violation.getMessage(), ErrorCode.INVALID_PARAMETER.getMessage()),
+                        (first, second) -> first,
+                        LinkedHashMap::new));
+
+        return badRequest(ErrorCode.INVALID_PARAMETER.getMessage(), errors);
+    }
+
+    private String lastNodeOf(Path propertyPath) {
+        String path = propertyPath.toString();
+        return path.substring(path.lastIndexOf('.') + 1);
     }
 
     private ResponseEntity<ErrorDto> badRequest(String message, Map<String, String> errors) {

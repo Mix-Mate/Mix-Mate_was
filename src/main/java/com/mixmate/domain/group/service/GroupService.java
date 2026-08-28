@@ -8,6 +8,7 @@ import com.mixmate.domain.group.dto.response.GroupDetailResponse;
 import com.mixmate.domain.group.dto.request.GroupUpdateRequest;
 import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.enums.GroupStatus;
+import com.mixmate.domain.group.repository.GroupBanRepository;
 import com.mixmate.domain.group.repository.GroupRepository;
 import com.mixmate.domain.participant.entity.Participant;
 import com.mixmate.domain.participant.repository.ParticipantRepository;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class GroupService {
 
     private final GroupRepository groupRepository;
+    private final GroupBanRepository groupBanRepository;
     private final ParticipantRepository participantRepository;
     private final UserRepository userRepository;
     private final InviteCodeGenerator inviteCodeGenerator;
@@ -82,6 +84,7 @@ public class GroupService {
         if (group.getStatus() != GroupStatus.RECRUITING) {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "참가자 모집 중에만 삭제할 수 있습니다.");
         }
+        groupBanRepository.deleteAllByGroup(group);
         participantRepository.deleteAllByGroup(group);
         groupRepository.delete(group);
     }
@@ -129,6 +132,7 @@ public class GroupService {
         if (!group.getStatus().canFinish()) {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "투표 종료 후 또는 2차 진행 중에만 모임을 종료할 수 있습니다.");
         }
+        groupBanRepository.deleteAllByGroup(group);
         group.finish();
     }
 }

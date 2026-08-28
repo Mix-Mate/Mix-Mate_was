@@ -54,7 +54,8 @@ public interface HomeGroupApi {
 
     @Operation(summary = "그룹 입장",
             description = "참여코드와 프로필 정보를 함께 보내 그룹에 참가자로 입장합니다. "
-                    + "조 편성이 이미 시작된 그룹이거나 이미 참여중인 그룹이면 실패합니다.")
+                    + "조 편성이 이미 시작된 그룹이거나 이미 참여중인 그룹이면 실패합니다. "
+                    + "관리자에게 삭제된 사용자는 차단되므로, 해제되기 전까지는 같은 참여코드로도 입장할 수 없습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "입장 성공",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -64,6 +65,10 @@ public interface HomeGroupApi {
             @ApiResponse(responseCode = "401", description = "인증 없음",
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "관리자에게 삭제되어 차단된 사용자",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "BANNED_FROM_GROUP", "message": "차단되어 입장할 수 없습니다." }
                             """))),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 참여코드",
                     content = @Content(examples = @ExampleObject(value = """

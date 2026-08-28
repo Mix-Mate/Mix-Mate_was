@@ -1,7 +1,13 @@
 package com.mixmate.domain.participant.service;
 
+import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.group.entity.Group;
+import com.mixmate.domain.group.entity.GroupBan;
 import com.mixmate.domain.group.enums.GroupStatus;
+import com.mixmate.domain.group.dto.GroupBanSummary;
+import com.mixmate.domain.group.dto.response.GroupBanListResponse;
+import com.mixmate.domain.group.repository.GroupBanRepository;
+import com.mixmate.domain.group.repository.GroupRepository;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
 import com.mixmate.domain.participant.dto.response.MyProfileResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
@@ -22,13 +28,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 그룹 참가자 조회와, 조 편성 전 참가자 구성(탈퇴/삭제/대리 등록)을 처리하는 서비스입니다.
+ * 그룹 참가자 조회와, 조 편성 전 참가자 구성(탈퇴/삭제/대리 등록/차단 관리)을 처리하는 서비스입니다.
  */
 @Service
 @RequiredArgsConstructor
 public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
+    private final GroupRepository groupRepository;
+    private final GroupBanRepository groupBanRepository;
     private final GroupMembership groupMembership;
     private final AssignmentReset assignmentReset;
 
@@ -117,10 +125,15 @@ public class ParticipantService {
     }
 
     /**
-     * 관리자(HOST)가 1차 진행 이전에 다른 참가자를 그룹에서 삭제합니다.
+     * 관리자(HOST)가 1차 진행 이전에 다른 참가자를 그룹에서 삭제하고, 그 사용자를 차단합니다.
+     * 해제하기 전까지 같은 참여코드로 다시 입장할 수 없습니다.
      */
     @Transactional
-    public void deleteParticipant(Long groupId, Long targetParticipantId, Long userId) {
+    public void deleteParticipant(Long groupId, Long targetParticipantId, String reason, Long userId) {
+        // 같은 참가자를 동시에 삭제하면 차단 행이 유니크 제약에 걸린다. 그룹 행을 잠가 직렬화한다.
+        groupRepository.findWithLockByGroupId(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "그룹정보가 없습니다."));
+
         Group group = groupMembership.getHost(groupId, userId).getGroup();
 
         if (!group.getStatus().isBeforeFirstAssignment())
@@ -131,9 +144,38 @@ public class ParticipantService {
         if (targetParticipant.getRole() == Role.HOST)
             throw new CustomException(ErrorCode.FORBIDDEN, "호스트 본인은 삭제할 수 없습니다.");
 
+        // 차단은 계정에 있는 경우에만 수행한다.
+        User targetUser = targetParticipant.getUser();
+        if (targetUser != null) {
+            GroupBan ban = GroupBan.create(targetUser, group, targetParticipant.getProfile().getDisplayName(), reason);
+            groupBanRepository.save(ban);
+        }
+
         // 명단이 바뀐 편성은 틀린 결과다. 지운 뒤 관리자가 다시 편성한다.
         assignmentReset.resetByGroup(group);
         participantRepository.delete(targetParticipant);
+    }
+
+    /**
+     * 관리자(HOST)가 이 그룹에서 차단한 사용자를 최근 차단순으로 조회합니다.
+     */
+    @Transactional(readOnly = true)
+    public GroupBanListResponse getBannedUsers(Long groupId, Long userId) {
+        Group group = groupMembership.getHost(groupId, userId).getGroup();
+
+        return new GroupBanListResponse(groupBanRepository.findAllByGroupWithUser(group).stream()
+                .map(GroupBanSummary::from)
+                .toList());
+    }
+
+    /**
+     * 관리자(HOST)가 차단을 해제합니다. 입장을 허용할 뿐이라 그 사용자가 직접 다시 입장해야 합니다.
+     * 차단된 적 없는 사용자를 지정해도 오류 없이 넘어갑니다.
+     */
+    @Transactional
+    public void unbanUser(Long groupId, Long targetUserId, Long userId) {
+        Group group = groupMembership.getHost(groupId, userId).getGroup();
+        groupBanRepository.deleteByGroupAndUser_UserId(group, targetUserId);
     }
 
     /**

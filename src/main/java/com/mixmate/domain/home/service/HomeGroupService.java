@@ -4,6 +4,7 @@ import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.auth.repository.UserRepository;
 import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.enums.GroupStatus;
+import com.mixmate.domain.group.repository.GroupBanRepository;
 import com.mixmate.domain.group.repository.GroupRepository;
 import com.mixmate.domain.home.dto.request.HomeGroupJoinReqDto;
 import com.mixmate.domain.home.dto.request.HomeInviteCodeVerifyReqDto;
@@ -32,6 +33,7 @@ public class HomeGroupService {
     private static final long INVITE_CODE_VALID_DAYS = 3;
 
     private final GroupRepository groupRepository;
+    private final GroupBanRepository groupBanRepository;
     private final ParticipantRepository participantRepository;
     private final UserRepository userRepository;
 
@@ -67,6 +69,9 @@ public class HomeGroupService {
         }
         if (participantRepository.existsByGroupAndUser(group, user)) {
             throw new CustomException(ErrorCode.ALREADY_JOINED);
+        }
+        if (groupBanRepository.existsByGroupAndUser(group, user)) {
+            throw new CustomException(ErrorCode.BANNED_FROM_GROUP);
         }
 
         Participant participant = Participant.join(user, group, dto.getProfile().toEntity());

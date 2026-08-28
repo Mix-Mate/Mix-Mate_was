@@ -247,7 +247,8 @@ public interface GroupApi {
     @Operation(summary = "모임 종료",
             description = "관리자가 모임을 종료합니다. 그룹 상태가 FINISHED가 되며 되돌릴 수 없습니다. "
                     + "투표 종료 직후(2차를 하지 않기로 한 경우)와 2차 진행 중에만 호출할 수 있고, "
-                    + "2차를 하기로 한 뒤에는 조 편성을 마쳐야 종료할 수 있습니다.")
+                    + "2차를 하기로 한 뒤에는 조 편성을 마쳐야 종료할 수 있습니다. "
+                    + "종료 시점에 차단 목록도 함께 비워집니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "모임 종료 성공. 이미 종료된 그룹에 다시 호출해도 204입니다."),
             @ApiResponse(responseCode = "401", description = "인증 없음",
