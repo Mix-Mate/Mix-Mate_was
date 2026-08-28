@@ -1,5 +1,6 @@
 package com.mixmate.domain.participant.api;
 
+import com.mixmate.domain.group.dto.response.GroupBanListResponse;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
 import com.mixmate.domain.participant.dto.response.MyProfileResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
@@ -295,6 +296,72 @@ public interface ParticipantApi {
     ResponseEntity<Void> addParticipant(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Valid @RequestBody ParticipantProfileRequest dto,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "차단 목록 조회",
+            description = "관리자가 이 그룹에서 차단한 사용자를 최근 차단순으로 조회합니다. "
+                    + "참가자를 삭제하면 그 사용자는 자동으로 차단되어, 해제하기 전까지 같은 참여코드로 다시 입장할 수 없습니다. "
+                    + "삭제된 참가자 행은 남지 않으므로 displayName은 삭제 시점의 값이며 이후 갱신되지 않습니다. "
+                    + "대리 등록된 오프라인 참가자는 계정이 없어 차단 대상이 아니므로 목록에 나오지 않습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공. 차단한 사용자가 없으면 빈 배열입니다.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GroupBanListResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """)))
+    })
+    @GetMapping("/{groupId}/bans")
+    ResponseEntity<GroupBanListResponse> getBannedUsers(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "차단 해제",
+            description = "관리자가 차단을 풀어 해당 사용자가 다시 입장할 수 있게 합니다. "
+                    + "해제는 입장을 허용할 뿐이므로 그 사용자가 직접 참여코드를 입력하고 프로필을 다시 채워야 합니다. "
+                    + "삭제했던 참가자가 그대로 복구되지는 않습니다. "
+                    + "차단 목록에 없는 사용자를 지정해도 오류 없이 성공으로 응답합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "해제 성공. 원래 차단이 아니었어도 같은 응답입니다.",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """)))
+    })
+    @DeleteMapping("/{groupId}/bans/{targetUserId}")
+    ResponseEntity<Void> unbanUser(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(description = "차단을 해제할 사용자 식별자", required = true) @PathVariable Long targetUserId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 }
