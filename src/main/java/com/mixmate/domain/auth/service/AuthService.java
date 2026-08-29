@@ -1,6 +1,7 @@
 package com.mixmate.domain.auth.service;
 
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
+import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
 import com.mixmate.domain.auth.entity.User;
@@ -26,6 +27,7 @@ public class AuthService {
 
     private static final String BLACKLIST_PREFIX = "BLACKLIST:";
     private static final String VERIFIED_EMAIL_PREFIX = "VERIFIED_EMAIL:";
+    private static final String PW_RESET_VERIFIED_PREFIX = "PW_RESET_VERIFIED:";
 
     private final UserRepository userRepository;
     private final RedisService redisService;
@@ -82,6 +84,29 @@ public class AuthService {
         tokenService.saveRefreshToken(user.getUserId(), refreshToken);
 
         return LoginResDto.fromEntity(user, accessToken, refreshToken);
+    }
+
+    /**
+     * 비밀번호 재설정 서비스
+     *
+     * PasswordResetEmailService.verifyCode에서 인증 성공 시 Redis에 "PW_RESET_VERIFIED:" + email -> "DONE"으로
+     * 저장해두는 것을 전제로 합니다. 재설정 후에는 다른 기기의 로그인을 무효화하기 위해 리프레시 토큰을 삭제합니다.
+     *
+     * @param dto 재설정할 이메일과 새 비밀번호
+     */
+    @Transactional
+    public void resetPassword(PasswordResetReqDto dto) {
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        String verifiedKey = PW_RESET_VERIFIED_PREFIX + dto.getEmail();
+        if (!"DONE".equals(redisService.getData(verifiedKey))) {
+            throw new CustomException(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
+        redisService.deleteData(verifiedKey);
+
+        user.updatePassword(passwordEncoder.encode(dto.getNewPassword()));
+        tokenService.deleteRefreshToken(user.getUserId());
     }
 
     /**

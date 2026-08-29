@@ -2,9 +2,11 @@ package com.mixmate.domain.auth.controller;
 
 import com.mixmate.domain.auth.api.AuthApi;
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
+import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
 import com.mixmate.domain.auth.service.AuthService;
+import com.mixmate.domain.auth.service.PasswordResetEmailService;
 import com.mixmate.domain.auth.service.SignUpEmailService;
 import com.mixmate.security.JwtUtil;
 import jakarta.servlet.http.Cookie;
@@ -29,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class AuthController implements AuthApi {
     private final AuthService authService;
     private final SignUpEmailService signUpEmailService;
+    private final PasswordResetEmailService passwordResetEmailService;
     private final JwtUtil jwtUtil;
 
     // 회원가입 API
@@ -53,6 +56,30 @@ public class AuthController implements AuthApi {
             return ResponseEntity.ok("인증 성공!");
         }
         return ResponseEntity.badRequest().body("인증 번호가 틀렸거나 만료되었습니다.");
+    }
+
+    // 비밀번호 재설정 인증번호 발송
+    @PostMapping("/password/send")
+    public ResponseEntity<String> sendPasswordResetCode(@RequestParam String email) {
+        passwordResetEmailService.sendVerificationCode(email);
+        return ResponseEntity.ok("인증 번호가 발송되었습니다.");
+    }
+
+    // 비밀번호 재설정 인증번호 검증
+    @PostMapping("/password/verify")
+    public ResponseEntity<String> verifyPasswordResetCode(@RequestParam String email, @RequestParam String code) {
+        boolean isVerified = passwordResetEmailService.verifyCode(email, code);
+        if (isVerified) {
+            return ResponseEntity.ok("인증 성공!");
+        }
+        return ResponseEntity.badRequest().body("인증 번호가 틀렸거나 만료되었습니다.");
+    }
+
+    // 비밀번호 재설정
+    @PostMapping("/password/reset")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordResetReqDto passwordResetReqDto) {
+        authService.resetPassword(passwordResetReqDto);
+        return ResponseEntity.ok("비밀번호가 변경되었습니다.");
     }
 
     // 로그인 API

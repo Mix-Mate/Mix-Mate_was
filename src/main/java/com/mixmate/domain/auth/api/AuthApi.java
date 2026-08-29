@@ -1,6 +1,7 @@
 package com.mixmate.domain.auth.api;
 
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
+import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -59,6 +60,49 @@ public interface AuthApi {
             @Parameter(description = "이메일", required = true) @RequestParam String email,
             @Parameter(description = "발송받은 6자리 인증번호", required = true) @RequestParam String code
     );
+
+    @Operation(summary = "비밀번호 재설정 인증번호 발송",
+            description = "가입된 이메일로 6자리 인증번호를 발송합니다. 5분간 유효합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "발송 성공"),
+            @ApiResponse(responseCode = "404", description = "가입되지 않은 이메일",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "USER_NOT_FOUND", "message": "사용자를 찾을 수 없습니다." }
+                            """)))
+    })
+    @PostMapping("/password/send")
+    ResponseEntity<String> sendPasswordResetCode(
+            @Parameter(description = "인증번호를 받을, 가입된 이메일", required = true) @RequestParam String email
+    );
+
+    @Operation(summary = "비밀번호 재설정 인증번호 검증",
+            description = "발송된 인증번호가 맞는지 확인합니다. 성공 시 10분간 비밀번호 재설정이 가능한 상태가 됩니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "인증 성공"),
+            @ApiResponse(responseCode = "400", description = "인증번호가 틀렸거나 만료됨")
+    })
+    @PostMapping("/password/verify")
+    ResponseEntity<String> verifyPasswordResetCode(
+            @Parameter(description = "이메일", required = true) @RequestParam String email,
+            @Parameter(description = "발송받은 6자리 인증번호", required = true) @RequestParam String code
+    );
+
+    @Operation(summary = "비밀번호 재설정",
+            description = "인증번호 검증(password/verify)이 완료된 이메일만 비밀번호를 재설정할 수 있습니다. "
+                    + "성공 시 다른 기기의 로그인을 무효화하기 위해 리프레시 토큰을 삭제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "재설정 성공"),
+            @ApiResponse(responseCode = "400", description = "필수값 누락 등 입력값 오류, 또는 인증 미완료",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "EMAIL_NOT_VERIFIED", "message": "이메일 인증이 완료되지 않았습니다." }
+                            """))),
+            @ApiResponse(responseCode = "404", description = "가입되지 않은 이메일",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "USER_NOT_FOUND", "message": "사용자를 찾을 수 없습니다." }
+                            """)))
+    })
+    @PostMapping("/password/reset")
+    ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordResetReqDto passwordResetReqDto);
 
     @Operation(summary = "로그인",
             description = "이메일/비밀번호로 로그인합니다. accessToken/refreshToken을 응답 본문과 httpOnly 쿠키로 함께 내려줍니다.")
