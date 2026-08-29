@@ -197,7 +197,7 @@ class AssignmentSummarizerTest {
         for (int teamNumber = 1; teamNumber <= 10; teamNumber++) {
             List<Participant> team = new ArrayList<>();
             for (int i = 0; i < 10; i++) {
-                team.add(grade(Grade.values()[seq++ % 4]));
+                team.add(grade(Grade.values()[seq++ % Grade.values().length]));
             }
             teams.put(teamNumber, team);
         }
