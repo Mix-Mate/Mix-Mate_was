@@ -72,8 +72,8 @@ class TeamAssignerTest {
     @Test
     @DisplayName("학년이 고르게 흩어져 벌점이 0인 배치가 많아도 인원은 고르게 나뉜다")
     void balancesWhenNoParticipantSharesKey() {
-        // 12명을 네 학년으로 3명씩. 조마다 학년이 겹치지 않게 담을 수 있어 벌점 0인 배치가 여럿 나온다.
-        List<Participant> participants = participants(12, i -> withGrade(Grade.values()[i % 4]));
+        // 12명을 모든 학년에 돌아가며 배분. 조마다 학년이 겹치지 않게 담을 수 있어 벌점 0인 배치가 여럿 나온다.
+        List<Participant> participants = participants(12, i -> withGrade(Grade.values()[i % Grade.values().length]));
 
         Map<Integer, List<Participant>> teams =
                 assigner.assign(participants, 3, Set.of(AssignmentCondition.GRADE_SPREAD), Map.of());
