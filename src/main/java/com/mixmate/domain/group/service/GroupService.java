@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * 그룹 생성, 정보 수정, 삭제를 관리자(HOST) 권한 기준으로 처리하는 서비스입니다.
@@ -36,6 +37,7 @@ public class GroupService {
     private final UserRepository userRepository;
     private final InviteCodeGenerator inviteCodeGenerator;
     private final GroupMembership groupMembership;
+    private final GroupStatusNotifier groupStatusNotifier;
     private final ApplicationEventPublisher eventPublisher;
 
     private final static int MAX_LOOP_COUNT = 5;
@@ -98,6 +100,12 @@ public class GroupService {
     public GroupDetailResponse getGroupDetail(Long groupId, Long userId) {
         Participant me = groupMembership.getMember(groupId, userId);
         return GroupDetailResponse.from(me, participantRepository.countByGroup(me.getGroup()));
+    }
+
+    @Transactional(readOnly = true)
+    public SseEmitter subscribeStatus(Long groupId, Long userId) {
+        Participant me = groupMembership.getMember(groupId, userId);
+        return groupStatusNotifier.subscribe(groupId, me.getGroup().getStatus());
     }
 
     @Transactional
