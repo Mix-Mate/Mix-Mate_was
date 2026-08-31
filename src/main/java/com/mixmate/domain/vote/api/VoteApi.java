@@ -1,5 +1,6 @@
 package com.mixmate.domain.vote.api;
 
+import com.mixmate.domain.vote.dto.request.AdminRound2VoteReqDto;
 import com.mixmate.domain.vote.dto.request.MvpVoteReqDto;
 import com.mixmate.domain.vote.dto.request.Round2VoteReqDto;
 import com.mixmate.domain.vote.dto.response.Round2VoteStatusResDto;
@@ -109,6 +110,56 @@ public interface VoteApi {
     ResponseEntity<Void> voteSecondRound(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Valid @RequestBody Round2VoteReqDto dto,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "관리자가 대신 2차 참여 여부 투표하기",
+            description = "로그인 계정이 없는(관리자가 대리 등록한) 참가자를 대신해 관리자가 2차 참여 여부를 투표합니다. "
+                    + "계정이 있는 참가자는 본인만 투표할 수 있으므로 이 API로 대신 투표할 수 없습니다. "
+                    + "참여를 선택하면 참가자의 2차 참여 상태가 함께 갱신됩니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "투표 성공"),
+            @ApiResponse(responseCode = "400", description = "필수값 누락 등 입력값 오류",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나 관리자가 아님, 또는 계정이 있는 참가자를 대상으로 함",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """),
+                            @ExampleObject(name = "계정이 있는 참가자", value = """
+                                        { "code": "NOT_MANUAL_PARTICIPANT", "message": "로그인 계정이 있는 참가자는 관리자가 대신 투표할 수 없습니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹이거나 투표 대상을 찾을 수 없음",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "그룹 없음", value = """
+                                        { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "대상 없음", value = """
+                                        { "code": "NOT_FOUND", "message": "투표 대상을 찾을 수 없습니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "409", description = "투표 미진행 또는 이미 투표함",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "투표 미진행", value = """
+                                        { "code": "VOTE_NOT_IN_PROGRESS", "message": "투표가 진행중이 아닙니다." }
+                                    """),
+                            @ExampleObject(name = "중복 투표", value = """
+                                        { "code": "ALREADY_VOTED", "message": "이미 투표를 완료했습니다." }
+                                    """)
+                    }))
+    })
+    @PostMapping("/{groupId}/votes/second-round/admin")
+    ResponseEntity<Void> voteSecondRoundByHost(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Valid @RequestBody AdminRound2VoteReqDto dto,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 

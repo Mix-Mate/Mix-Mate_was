@@ -13,6 +13,7 @@ import com.mixmate.domain.participant.enums.Round;
 import com.mixmate.domain.participant.enums.RoundParticipation;
 import com.mixmate.domain.participant.repository.ParticipantRepository;
 import com.mixmate.domain.participant.service.GroupMembership;
+import com.mixmate.domain.vote.dto.request.AdminRound2VoteReqDto;
 import com.mixmate.domain.vote.dto.request.MvpVoteReqDto;
 import com.mixmate.domain.vote.dto.request.Round2VoteReqDto;
 import com.mixmate.domain.vote.dto.response.MvpWinnerResDto;
@@ -109,6 +110,31 @@ public class VoteService {
         round2VoteRepository.save(Round2ParticipationVote.create(voter, dto.getChoice()));
         if (dto.getChoice() == VoteChoice.PARTICIPATE)
             voter.joinSecondRound();
+    }
+
+    /**
+     * 관리자가 로그인 계정이 없는(대리 등록한) 참가자를 대신해 2차 참여 여부를 투표한다.
+     * 계정이 있는 참가자는 본인만 투표할 수 있으므로 이 경로로 대신 투표할 수 없다.
+     */
+    @Transactional
+    public void voteSecondRoundByHost(AdminRound2VoteReqDto dto, Long groupId, Long userId) {
+        Group group = groupMembership.getHost(groupId, userId).getGroup();
+
+        if (group.getStatus() != GroupStatus.VOTING)
+            throw new CustomException(ErrorCode.VOTE_NOT_IN_PROGRESS);
+
+        Participant target = participantRepository.findByParticipantIdAndGroup(dto.getTargetParticipantId(), group)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "투표 대상을 찾을 수 없습니다."));
+
+        if (target.getUser() != null)
+            throw new CustomException(ErrorCode.NOT_MANUAL_PARTICIPANT);
+
+        if (round2VoteRepository.existsByVoter(target))
+            throw new CustomException(ErrorCode.ALREADY_VOTED);
+
+        round2VoteRepository.save(Round2ParticipationVote.create(target, dto.getChoice()));
+        if (dto.getChoice() == VoteChoice.PARTICIPATE)
+            target.joinSecondRound();
     }
 
     /**

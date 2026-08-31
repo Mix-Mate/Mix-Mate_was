@@ -1,6 +1,7 @@
 package com.mixmate.domain.vote.controller;
 
 import com.mixmate.domain.vote.api.VoteApi;
+import com.mixmate.domain.vote.dto.request.AdminRound2VoteReqDto;
 import com.mixmate.domain.vote.dto.request.MvpVoteReqDto;
 import com.mixmate.domain.vote.dto.request.Round2VoteReqDto;
 import com.mixmate.domain.vote.dto.response.Round2VoteStatusResDto;
@@ -35,6 +36,15 @@ public class VoteController implements VoteApi {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         voteService.voteSecondRound(dto, groupId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+    public ResponseEntity<Void> voteSecondRoundByHost(
+            @PathVariable Long groupId,
+            @Valid @RequestBody AdminRound2VoteReqDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        voteService.voteSecondRoundByHost(dto, groupId, userDetails.getUserId());
         return ResponseEntity.noContent().build();
     }
 
