@@ -6,6 +6,7 @@ import com.mixmate.domain.assignment.repository.GroupAssignmentRepository;
 import com.mixmate.domain.assignment.repository.TeamAssignmentMemberRepository;
 import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.enums.GroupStatus;
+import com.mixmate.domain.group.event.GroupStatusChangedEvent;
 import com.mixmate.domain.participant.dto.ParticipantSummary;
 import com.mixmate.domain.participant.entity.Participant;
 import com.mixmate.domain.participant.enums.Round;
@@ -26,6 +27,7 @@ import com.mixmate.domain.vote.repository.Round2ParticipationVoteRepository;
 import com.mixmate.exception.CustomException;
 import com.mixmate.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,7 @@ public class VoteService {
     private final GroupAssignmentRepository groupAssignmentRepository;
     private final TeamAssignmentMemberRepository teamAssignmentMemberRepository;
     private final GroupMembership groupMembership;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 참가자가 같은 조원 중 한 명에게 MVP 투표를 한다.
@@ -200,5 +203,6 @@ public class VoteService {
         round2VoteRepository.saveAll(autoVotes);
 
         group.finishVoting();
+        eventPublisher.publishEvent(new GroupStatusChangedEvent(groupId, group.getStatus()));
     }
 }

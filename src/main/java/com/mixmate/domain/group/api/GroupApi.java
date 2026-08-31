@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Tag(name = "그룹", description = "그룹 생성, 조회, 수정, 삭제, 진행 상태 변경 API")
 @RequestMapping(value = "/api/v1/groups", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -70,6 +71,48 @@ public interface GroupApi {
     })
     @GetMapping("/{groupId}")
     ResponseEntity<GroupDetailResponse> getGroupDetail(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "그룹 진행 상태 실시간 구독 (SSE)",
+            description = "그룹 진행 상태가 바뀔 때마다 서버가 이벤트를 밀어주는 SSE 스트림입니다. "
+                    + "폴링을 대체하기 위한 것으로, 그룹 화면에 머무는 동안 연결을 유지하면 됩니다.\n\n"
+                    + "연결 직후 현재 상태를 한 번 보내고, 이후 상태가 바뀔 때마다 같은 형식으로 내려줍니다. "
+                    + "재연결 시에도 이 최초 이벤트가 오므로, 끊긴 사이에 놓친 변경은 별도 보정 없이 따라잡힙니다. "
+                    + "놓친 이벤트를 되감아 보내주지는 않습니다.\n\n"
+                    + "이벤트 이름은 status이므로 클라이언트는 onmessage가 아니라 status 이벤트를 구독해야 합니다. "
+                    + "20초마다 주석 형태의 하트비트(`:ping`)가 나가며, 클라이언트는 이를 무시하면 됩니다. "
+                    + "연결은 30분 뒤 서버가 닫고 클라이언트가 다시 연결합니다.\n\n"
+                    + "브라우저 기본 EventSource는 Authorization 헤더를 붙일 수 없으므로, "
+                    + "헤더를 지정할 수 있는 SSE 클라이언트를 사용해야 합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "구독 성공. 연결이 유지되며 이벤트가 순차적으로 내려옵니다.",
+                    content = @Content(mediaType = MediaType.TEXT_EVENT_STREAM_VALUE,
+                            examples = @ExampleObject(value = """
+                                        event:status
+                                        data:{"groupId":7,"status":"FIRST_ROUND"}
+
+                                        :ping
+
+                                        event:status
+                                        data:{"groupId":7,"status":"VOTING"}
+                                    """))),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아님",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """)))
+    })
+    @GetMapping(value = "/{groupId}/status/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    SseEmitter subscribeStatus(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );

@@ -8,6 +8,7 @@ import com.mixmate.domain.group.dto.response.GroupDetailResponse;
 import com.mixmate.domain.group.dto.request.GroupUpdateRequest;
 import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.enums.GroupStatus;
+import com.mixmate.domain.group.event.GroupStatusChangedEvent;
 import com.mixmate.domain.group.repository.GroupBanRepository;
 import com.mixmate.domain.group.repository.GroupRepository;
 import com.mixmate.domain.participant.entity.Participant;
@@ -17,8 +18,10 @@ import com.mixmate.domain.participant.service.GroupMembership;
 import com.mixmate.exception.CustomException;
 import com.mixmate.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * 그룹 생성, 정보 수정, 삭제를 관리자(HOST) 권한 기준으로 처리하는 서비스입니다.
@@ -34,6 +37,8 @@ public class GroupService {
     private final UserRepository userRepository;
     private final InviteCodeGenerator inviteCodeGenerator;
     private final GroupMembership groupMembership;
+    private final GroupStatusNotifier groupStatusNotifier;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final static int MAX_LOOP_COUNT = 5;
     private final static int MIN_SECOND_ROUND_PARTICIPANTS = 8;
@@ -97,6 +102,12 @@ public class GroupService {
         return GroupDetailResponse.from(me, participantRepository.countByGroup(me.getGroup()));
     }
 
+    @Transactional(readOnly = true)
+    public SseEmitter subscribeStatus(Long groupId, Long userId) {
+        Participant me = groupMembership.getMember(groupId, userId);
+        return groupStatusNotifier.subscribe(groupId, me.getGroup().getStatus());
+    }
+
     @Transactional
     public void closeRecruiting(Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
@@ -105,6 +116,7 @@ public class GroupService {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "참가자 모집 중에만 마감할 수 있습니다.");
         }
         group.closeRecruiting();
+        eventPublisher.publishEvent(new GroupStatusChangedEvent(groupId, group.getStatus()));
     }
 
     @Transactional
@@ -115,6 +127,7 @@ public class GroupService {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "1차 진행 중에만 종료할 수 있습니다.");
         }
         group.startVoting();
+        eventPublisher.publishEvent(new GroupStatusChangedEvent(groupId, group.getStatus()));
     }
 
     @Transactional
@@ -130,6 +143,7 @@ public class GroupService {
                     "2차 참여 인원이 %d명 이상이어야 합니다.".formatted(MIN_SECOND_ROUND_PARTICIPANTS));
         }
         group.decideSecondRound();
+        eventPublisher.publishEvent(new GroupStatusChangedEvent(groupId, group.getStatus()));
     }
 
     @Transactional
@@ -141,5 +155,6 @@ public class GroupService {
         }
         groupBanRepository.deleteAllByGroup(group);
         group.finish();
+        eventPublisher.publishEvent(new GroupStatusChangedEvent(groupId, group.getStatus()));
     }
 }

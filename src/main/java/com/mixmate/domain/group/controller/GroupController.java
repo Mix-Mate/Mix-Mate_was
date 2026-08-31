@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.net.URI;
 
@@ -79,6 +80,13 @@ public class GroupController implements GroupApi {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(groupService.getGroupDetail(groupId, userDetails.getUserId()));
+    }
+
+    public SseEmitter subscribeStatus(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return groupService.subscribeStatus(groupId, userDetails.getUserId());
     }
 
     /**
