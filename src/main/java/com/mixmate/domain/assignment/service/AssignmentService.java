@@ -11,6 +11,7 @@ import com.mixmate.domain.assignment.entity.TeamAssignmentMember;
 import com.mixmate.domain.assignment.repository.GroupAssignmentRepository;
 import com.mixmate.domain.assignment.repository.TeamAssignmentMemberRepository;
 import com.mixmate.domain.group.entity.Group;
+import com.mixmate.domain.group.event.GroupStatusChangedEvent;
 import com.mixmate.domain.participant.entity.Participant;
 import com.mixmate.domain.participant.enums.Role;
 import com.mixmate.domain.participant.enums.Round;
@@ -20,6 +21,7 @@ import com.mixmate.domain.participant.service.GroupMembership;
 import com.mixmate.exception.CustomException;
 import com.mixmate.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +52,7 @@ public class AssignmentService {
     private final GroupMembership groupMembership;
     private final TeamAssigner teamAssigner;
     private final AssignmentSummarizer assignmentSummarizer;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 관리자가 조 편성을 실행합니다. 1차는 참가자 전원이, 2차는 2차 참여를 선택한 인원만 대상입니다.
@@ -127,6 +130,7 @@ public class AssignmentService {
         }
 
         group.startRound(round);
+        eventPublisher.publishEvent(new GroupStatusChangedEvent(groupId, group.getStatus()));
     }
 
     /**
