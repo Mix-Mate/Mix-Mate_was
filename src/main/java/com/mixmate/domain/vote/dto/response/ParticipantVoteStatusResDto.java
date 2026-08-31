@@ -22,11 +22,16 @@ public class ParticipantVoteStatusResDto {
     @Schema(description = "아직 투표하지 않았으면 null", example = "PARTICIPATE")
     private final VoteChoice choice;
 
+    @Schema(description = "로그인 계정이 없는(관리자가 대리 등록한) 참가자인지 여부. true인 경우에만 관리자가 대신 투표할 수 있음",
+            example = "false")
+    private final boolean isManualEntry;
+
     public static ParticipantVoteStatusResDto fromEntity(Participant participant, VoteChoice choice) {
         return ParticipantVoteStatusResDto.builder()
                 .participantId(participant.getParticipantId())
                 .displayName(participant.getProfile().getDisplayName())
                 .choice(choice)
+                .isManualEntry(participant.getUser() == null)
                 .build();
     }
 }

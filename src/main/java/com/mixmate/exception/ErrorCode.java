@@ -42,7 +42,8 @@ public enum ErrorCode {
     INSUFFICIENT_PARTICIPANTS(HttpStatus.CONFLICT, "조 편성에 필요한 최소 인원을 충족하지 못했습니다."),
     VOTE_NOT_IN_PROGRESS(HttpStatus.CONFLICT, "투표가 진행중이 아닙니다."),
     ALREADY_VOTED(HttpStatus.CONFLICT, "이미 투표를 완료했습니다."),
-    VOTE_TARGET_NOT_IN_TEAM(HttpStatus.CONFLICT, "같은 조원에게만 투표할 수 있습니다.");
+    VOTE_TARGET_NOT_IN_TEAM(HttpStatus.CONFLICT, "같은 조원에게만 투표할 수 있습니다."),
+    NOT_MANUAL_PARTICIPANT(HttpStatus.FORBIDDEN, "로그인 계정이 있는 참가자는 관리자가 대신 투표할 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
