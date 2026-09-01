@@ -163,6 +163,55 @@ public interface VoteApi {
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 
+    @Operation(summary = "관리자가 대신한 2차 참여 여부 투표 정정하기",
+            description = "관리자가 대신 투표해준(voteSecondRoundByHost) 계정 없는 참가자의 2차 참여 여부를 정정합니다. "
+                    + "아직 한 번도 투표된 적 없는 대상에는 사용할 수 없고(먼저 대신 투표하기를 호출해야 함), "
+                    + "계정이 있는 참가자는 대상이 될 수 없습니다. 참여로 정정하면 2차 참여 상태가, "
+                    + "불참으로 정정하면 다시 1차만 참여로 참가자 상태가 갱신됩니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "정정 성공"),
+            @ApiResponse(responseCode = "400", description = "필수값 누락 등 입력값 오류",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나 관리자가 아님, 또는 계정이 있는 참가자를 대상으로 함",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """),
+                            @ExampleObject(name = "계정이 있는 참가자", value = """
+                                        { "code": "NOT_MANUAL_PARTICIPANT", "message": "로그인 계정이 있는 참가자는 관리자가 대신 투표할 수 없습니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹이거나 투표 대상을 찾을 수 없거나, 투표 기록이 없음",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "그룹 없음", value = """
+                                        { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "대상 없음", value = """
+                                        { "code": "NOT_FOUND", "message": "투표 대상을 찾을 수 없습니다." }
+                                    """),
+                            @ExampleObject(name = "투표 기록 없음", value = """
+                                        { "code": "NOT_FOUND", "message": "투표 기록이 없습니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "409", description = "투표 미진행",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "VOTE_NOT_IN_PROGRESS", "message": "투표가 진행중이 아닙니다." }
+                            """)))
+    })
+    @PatchMapping("/{groupId}/votes/second-round/admin")
+    ResponseEntity<Void> updateSecondRoundVoteByHost(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Valid @RequestBody AdminRound2VoteReqDto dto,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
     @Operation(summary = "2차 투표 현황 확인하기",
             description = "그룹 참가자 전체의 2차 참여 여부 투표 현황(완료/참여/불참/미투표 인원과 참가자별 상태)을 조회합니다.")
     @ApiResponses({
