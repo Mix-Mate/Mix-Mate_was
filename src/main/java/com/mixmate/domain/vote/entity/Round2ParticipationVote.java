@@ -45,4 +45,8 @@ public class Round2ParticipationVote {
         this.voter = voter;
         this.choice = choice;
     }
+
+    public void updateChoice(VoteChoice choice) {
+        this.choice = choice;
+    }
 }
