@@ -79,4 +79,8 @@ public class Participant {
     public void joinSecondRound() {
         this.roundParticipation = RoundParticipation.FIRST_AND_SECOND;
     }
+
+    public void leaveSecondRound() {
+        this.roundParticipation = RoundParticipation.FIRST_ONLY;
+    }
 }
