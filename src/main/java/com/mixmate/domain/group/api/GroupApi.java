@@ -187,7 +187,9 @@ public interface GroupApi {
     );
 
     @Operation(summary = "참가자 모집 마감",
-            description = "관리자가 참가자 모집을 마감합니다. 그룹 상태가 BEFORE_FIRST_ROUND로 바뀌며 "
+            description = "관리자가 참가자 모집을 마감합니다. 조 편성에 조 2개와 조당 2명이 필요하므로 "
+                    + "참가자가 4명 이상일 때만 마감할 수 있습니다. "
+                    + "그룹 상태가 BEFORE_FIRST_ROUND로 바뀌며 "
                     + "이후로는 초대코드로 입장할 수 없고, 참가자 본인의 탈퇴와 그룹 삭제·수정도 막힙니다. "
                     + "관리자의 참가자 추가·삭제는 계속 가능합니다. 되돌릴 수 없습니다.")
     @ApiResponses({
@@ -209,10 +211,15 @@ public interface GroupApi {
                     content = @Content(examples = @ExampleObject(value = """
                                 { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
                             """))),
-            @ApiResponse(responseCode = "409", description = "모집 중이 아님(이미 조 편성 이후 단계)",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "참가자 모집 중에만 마감할 수 있습니다." }
-                            """)))
+            @ApiResponse(responseCode = "409", description = "모집 중이 아니거나, 참가자가 4명 미만임",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "모집 중이 아님", value = """
+                                        { "code": "INVALID_GROUP_STATUS", "message": "참가자 모집 중에만 마감할 수 있습니다." }
+                                    """),
+                            @ExampleObject(name = "인원 부족", value = """
+                                        { "code": "INSUFFICIENT_PARTICIPANTS", "message": "참가자가 4명 이상이어야 모집을 마감할 수 있습니다." }
+                                    """)
+                    }))
     })
     @PostMapping("/{groupId}/close-recruiting")
     ResponseEntity<Void> closeRecruiting(
