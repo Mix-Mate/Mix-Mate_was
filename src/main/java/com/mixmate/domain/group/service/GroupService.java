@@ -41,6 +41,7 @@ public class GroupService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final static int MAX_LOOP_COUNT = 5;
+    private final static int MIN_ASSIGNABLE_PARTICIPANTS = 4;   // 팀 최소 인원 : 2, 최소 필요 팀 : 2
     private final static int MIN_SECOND_ROUND_PARTICIPANTS = 8;
 
     /**
@@ -114,6 +115,10 @@ public class GroupService {
         if (group.getStatus() == GroupStatus.BEFORE_FIRST_ROUND) return;
         if (group.getStatus() != GroupStatus.RECRUITING) {
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "참가자 모집 중에만 마감할 수 있습니다.");
+        }
+        if (participantRepository.countByGroup(group) < MIN_ASSIGNABLE_PARTICIPANTS) {
+            throw new CustomException(ErrorCode.INSUFFICIENT_PARTICIPANTS,
+                    "참가자가 %d명 이상이어야 모집을 마감할 수 있습니다.".formatted(MIN_ASSIGNABLE_PARTICIPANTS));
         }
         group.closeRecruiting();
         eventPublisher.publishEvent(new GroupStatusChangedEvent(groupId, group.getStatus()));
