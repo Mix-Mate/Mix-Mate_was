@@ -1,9 +1,12 @@
 package com.mixmate.exception;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -33,12 +37,21 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * SSE 구독(status/stream)은 Accept: text/event-stream으로만 요청이 온다. ResponseEntity로 돌려주면
+     * Spring이 그 Accept 헤더와 JSON을 놓고 콘텐츠 협상을 하다 HttpMediaTypeNotAcceptableException을 던지며
+     * 커넥션이 지저분하게 끊긴다. HttpServletResponse에 직접 써서 그 협상 자체를 건너뛴다.
+     */
     @ExceptionHandler(CustomException.class)
-    public ResponseEntity<ErrorDto> handleCustomException(CustomException e) {
+    public void handleCustomException(CustomException e, HttpServletResponse response) throws IOException {
         ErrorCode errorCode = e.getErrorCode();
-        return ResponseEntity
-                .status(errorCode.getHttpStatus())
-                .body(new ErrorDto(errorCode, e.getMessage()));
+
+        response.setStatus(errorCode.getHttpStatus().value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        response.getWriter().write(objectMapper.writeValueAsString(new ErrorDto(errorCode, e.getMessage())));
     }
 
     /**
