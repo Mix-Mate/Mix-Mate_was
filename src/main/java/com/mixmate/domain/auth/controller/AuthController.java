@@ -4,7 +4,9 @@ import com.mixmate.domain.auth.api.AuthApi;
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
+import com.mixmate.domain.auth.dto.request.TokenReissueReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
+import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
 import com.mixmate.domain.auth.service.AuthService;
 import com.mixmate.domain.auth.service.PasswordResetEmailService;
 import com.mixmate.domain.auth.service.SignUpEmailService;
@@ -96,6 +98,26 @@ public class AuthController implements AuthApi {
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(loginRes);
+    }
+
+    // accessToken 재발급
+    @PostMapping("/reissue")
+    public ResponseEntity<TokenReissueResDto> reissue(
+            @RequestBody(required = false) TokenReissueReqDto reissueReqDto,
+            HttpServletRequest request
+    ) {
+        String refreshToken = jwtUtil.extractRefreshTokenFromCookie(request);
+        if (refreshToken == null && reissueReqDto != null) {
+            refreshToken = reissueReqDto.getRefreshToken();
+        }
+
+        TokenReissueResDto result = authService.reissueAccessToken(refreshToken);
+
+        ResponseCookie accessCookie = createCookie("accessToken", result.getAccessToken(), jwtUtil.getAccessValid());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .body(result);
     }
 
     @PostMapping("/logout")

@@ -36,4 +36,12 @@ public class TokenService {
 
         redisService.deleteData(RT_PREFIX + userId);
     }
+
+    /**
+     * accessToken 재발급 시, 클라이언트가 보낸 리프레시 토큰이 로그인 때 발급해 저장해둔 것과
+     * 같은지 대조하기 위해 조회한다. 로그아웃했거나 다른 기기에서 재로그인해 값이 바뀌었으면 없거나 다르다.
+     */
+    public String getRefreshToken(Long userId) {
+        return redisService.getData(RT_PREFIX + userId);
+    }
 }
