@@ -22,7 +22,7 @@ public class CorsConfig {
                 "http://localhost:*",
                 "https://mix-mate-web.vercel.app",
                 "https://mix-mate-web-*.vercel.app", // PR/브랜치별 Vercel 프리뷰 배포 주소도 허용
-                "http://165.229.244.149:3000" // 팀원 모바일 테스트용 임시 허용, 테스트 끝나면 제거
+                "https://petted-undone-monologue.ngrok-free.dev" // 팀원 dev 서버 ngrok 터널, IP가 바뀌어도 주소는 고정
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
