@@ -29,6 +29,7 @@ spring:
       hibernate.jdbc.time_zone: Asia/Seoul
       hibernate.format_sql: true
     show-sql: true
+    open-in-view: false # 기본값(true)이면 SSE처럼 응답이 오래 열려있는 요청이 그 시간만큼 커넥션을 계속 물고 있음
 
   mail:
     host: smtp.gmail.com # Google SMTP 서버
@@ -41,6 +42,11 @@ spring:
           auth: true
           starttls:
             enable: true
+
+  task:
+    scheduling:
+      pool:
+        size: 10 # 기본 1개 스레드로 SSE 하트비트가 순차 실행되면, 죽은 연결 하나가 전체를 잠깐 멈춰세움
 
 jwt:
   secret-key: ${JWT_SECRET}
