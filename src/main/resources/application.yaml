@@ -14,6 +14,8 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20 # 기본값 10으로는 동시접속 몰릴 때 커넥션이 바로 고갈됨 (2026-09-03 시연 중 확인)
 
   # Redis 설정 추가
   data:
