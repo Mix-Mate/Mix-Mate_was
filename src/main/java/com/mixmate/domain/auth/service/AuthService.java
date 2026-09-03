@@ -4,6 +4,7 @@ import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
+import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
 import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.auth.repository.UserRepository;
 import com.mixmate.exception.CustomException;
@@ -107,6 +108,39 @@ public class AuthService {
 
         user.updatePassword(passwordEncoder.encode(dto.getNewPassword()));
         tokenService.deleteRefreshToken(user.getUserId());
+    }
+
+    /**
+     * accessToken 재발급 서비스
+     *
+     * 리프레시 토큰이 유효한 서명·만료시간을 가진 JWT인지 먼저 검증하고, 로그인 때 Redis에 저장해둔 값과
+     * 같은지 대조한다. 로그아웃했거나 다른 기기에서 재로그인해 값이 바뀌었으면 여기서 걸린다.
+     *
+     * @param refreshToken 클라이언트가 보낸 리프레시 토큰 (쿠키 우선, 없으면 바디)
+     * @return 새로 발급된 accessToken
+     */
+    @Transactional(readOnly = true)
+    public TokenReissueResDto reissueAccessToken(String refreshToken) {
+        if (refreshToken == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED, "리프레시 토큰이 없습니다.");
+        }
+
+        String email;
+        try {
+            email = jwtUtil.getEmailFromToken(refreshToken);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new CustomException(ErrorCode.JWT_TOKEN_PARSING_ERROR);
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        String savedRefreshToken = tokenService.getRefreshToken(user.getUserId());
+        if (!refreshToken.equals(savedRefreshToken)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED, "리프레시 토큰이 유효하지 않습니다.");
+        }
+
+        return TokenReissueResDto.of(jwtUtil.createAccessToken(email));
     }
 
     /**

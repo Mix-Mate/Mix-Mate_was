@@ -3,7 +3,9 @@ package com.mixmate.domain.auth.api;
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
+import com.mixmate.domain.auth.dto.request.TokenReissueReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
+import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -129,6 +131,36 @@ public interface AuthApi {
     })
     @PostMapping("/login")
     ResponseEntity<LoginResDto> login(@Valid @RequestBody LoginReqDto loginReqDto);
+
+    @Operation(summary = "accessToken 재발급",
+            description = "refreshToken으로 새 accessToken을 발급합니다. refreshToken은 쿠키를 우선 사용하고, "
+                    + "쿠키가 없으면 요청 바디의 refreshToken을 봅니다. 성공 시 새 accessToken을 쿠키로도 다시 심어줍니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "재발급 성공",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = TokenReissueResDto.class))),
+            @ApiResponse(responseCode = "401", description = "refreshToken이 없거나, 유효하지 않거나, 로그인 때 저장된 값과 다름",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "토큰 없음", value = """
+                                        { "code": "UNAUTHORIZED", "message": "리프레시 토큰이 없습니다." }
+                                    """),
+                            @ExampleObject(name = "서명 오류·만료", value = """
+                                        { "code": "JWT_TOKEN_PARSING_ERROR", "message": "토큰이 유효하지 않거나 만료되었습니다." }
+                                    """),
+                            @ExampleObject(name = "저장된 값과 불일치(로그아웃됨 등)", value = """
+                                        { "code": "UNAUTHORIZED", "message": "리프레시 토큰이 유효하지 않습니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 사용자",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "USER_NOT_FOUND", "message": "사용자를 찾을 수 없습니다." }
+                            """)))
+    })
+    @PostMapping("/reissue")
+    ResponseEntity<TokenReissueResDto> reissue(
+            @RequestBody(required = false) TokenReissueReqDto reissueReqDto,
+            @Parameter(hidden = true) HttpServletRequest request
+    );
 
     @Operation(summary = "로그아웃",
             description = "accessToken 쿠키를 읽어 refreshToken을 삭제하고 accessToken을 블랙리스트에 등록한 뒤, 클라이언트 쿠키를 만료시킵니다. "
