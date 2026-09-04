@@ -113,6 +113,27 @@ public class VoteService {
     }
 
     /**
+     * 참가자가 자신이 투표한 2차 참여 여부를 정정한다. voteSecondRound와 달리 이미 투표된 건을 대상으로 한다.
+     */
+    @Transactional
+    public void updateSecondRoundVote(Round2VoteReqDto dto, Long groupId, Long userId) {
+        Participant voter = groupMembership.getMember(groupId, userId);
+        Group group = voter.getGroup();
+
+        if (group.getStatus() != GroupStatus.VOTING)
+            throw new CustomException(ErrorCode.VOTE_NOT_IN_PROGRESS);
+
+        Round2ParticipationVote vote = round2VoteRepository.findByVoter(voter)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "투표 기록이 없습니다."));
+
+        vote.updateChoice(dto.getChoice());
+        if (dto.getChoice() == VoteChoice.PARTICIPATE)
+            voter.joinSecondRound();
+        else
+            voter.leaveSecondRound();
+    }
+
+    /**
      * 관리자가 로그인 계정이 없는(대리 등록한) 참가자를 대신해 2차 참여 여부를 투표한다.
      * 계정이 있는 참가자는 본인만 투표할 수 있으므로 이 경로로 대신 투표할 수 없다.
      */

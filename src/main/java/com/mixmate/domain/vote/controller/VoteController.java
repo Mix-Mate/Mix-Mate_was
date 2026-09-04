@@ -39,6 +39,15 @@ public class VoteController implements VoteApi {
         return ResponseEntity.noContent().build();
     }
 
+    public ResponseEntity<Void> updateSecondRoundVote(
+            @PathVariable Long groupId,
+            @Valid @RequestBody Round2VoteReqDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        voteService.updateSecondRoundVote(dto, groupId, userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
     public ResponseEntity<Void> voteSecondRoundByHost(
             @PathVariable Long groupId,
             @Valid @RequestBody AdminRound2VoteReqDto dto,
