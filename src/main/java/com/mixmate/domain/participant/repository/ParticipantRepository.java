@@ -24,10 +24,15 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
     Optional<Participant> findByGroupAndUser(Group group, User user);
 
     /**
-     * 요청자의 참가 정보를 userId만으로 찾는다.
-     * User 엔티티를 먼저 조회할 필요가 없어 요청당 SELECT 한 번이 줄어든다.
+     * 참가 정보와 그 그룹을 한 번에 가져온다. Group을 먼저 조회해 넘길 필요가 없어
+     * 그룹 스코프 API가 공통으로 내던 SELECT 두 번이 한 번으로 줄어든다.
+     * 결과가 비면 그룹이 없는 것인지 참가자가 아닌 것인지 구분되지 않으므로,
+     * 404와 403을 갈라야 하는 호출부는 그때만 그룹 존재 여부를 따로 확인해야 한다.
      */
-    Optional<Participant> findByGroupAndUser_UserId(Group group, Long userId);
+    @Query("select p from Participant p join fetch p.group "
+            + "where p.group.groupId = :groupId and p.user.userId = :userId")
+    Optional<Participant> findWithGroupByGroupIdAndUserId(@Param("groupId") Long groupId,
+                                                          @Param("userId") Long userId);
 
     List<Participant> findByGroupAndRoundParticipation(Group group, RoundParticipation roundParticipation);
 
