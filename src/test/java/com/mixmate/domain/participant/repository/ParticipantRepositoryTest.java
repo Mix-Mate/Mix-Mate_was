@@ -160,6 +160,59 @@ class ParticipantRepositoryTest {
         assertThat(participant.getProfile().getDisplayName()).isEqualTo("김대현(수정)");
     }
 
+    @Test
+    @DisplayName("참가 정보를 조회하면 그룹까지 함께 로딩돼 추가 쿼리가 나가지 않는다")
+    void findWithGroupFetchesGroupEagerly() {
+        participantRepository.save(Participant.join(user, group, profile("김대현")));
+        em.flush();
+        em.clear();     // 1차 캐시를 비워야 프록시인지 실제로 채워진 엔티티인지 구분된다
+
+        Participant found = participantRepository
+                .findWithGroupByGroupIdAndUserId(group.getGroupId(), user.getUserId())
+                .orElseThrow();
+
+        // 쿼리에서 join fetch가 빠지면 group은 미초기화 프록시가 되어 이 단언만 깨진다.
+        // 그때도 쿼리는 성공하고 응답도 그대로라, 이 테스트가 없으면 조용히 되돌아간다.
+        boolean groupLoaded = em.getEntityManagerFactory()
+                .getPersistenceUnitUtil()
+                .isLoaded(found, "group");
+
+        assertThat(groupLoaded).isTrue();
+        assertThat(found.getGroup().getGroupName()).isEqualTo("신촌 모임");
+    }
+
+    @Test
+    @DisplayName("그룹이나 유저가 어긋나면 빈 결과가 나온다")
+    void findWithGroupReturnsEmptyWhenNotMember() {
+        participantRepository.save(Participant.join(user, group, profile("김대현")));
+        User other = insertUser("이서연", "lsy@example.com");
+        em.flush();
+        em.clear();
+
+        // 그룹은 있지만 참가자가 아닌 경우 — 호출부가 403으로 가른다
+        assertThat(participantRepository
+                .findWithGroupByGroupIdAndUserId(group.getGroupId(), other.getUserId())).isEmpty();
+
+        // 그룹 자체가 없는 경우 — 호출부가 404로 가른다
+        assertThat(participantRepository
+                .findWithGroupByGroupIdAndUserId(-1L, user.getUserId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("같은 그룹에 계정 없는 참가자가 있어도 요청자 본인 것만 조회된다")
+    void findWithGroupIgnoresParticipantsWithoutAccount() {
+        participantRepository.save(Participant.addByHost(group, profile("문찬주")));
+        participantRepository.save(Participant.join(user, group, profile("김대현")));
+        em.flush();
+        em.clear();
+
+        Participant found = participantRepository
+                .findWithGroupByGroupIdAndUserId(group.getGroupId(), user.getUserId())
+                .orElseThrow();
+
+        assertThat(found.getProfile().getDisplayName()).isEqualTo("김대현");
+    }
+
     private ParticipantProfile profile(String displayName) {
         return ParticipantProfile.builder()
                 .displayName(displayName)
