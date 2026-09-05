@@ -16,6 +16,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     /**
+     * 탈퇴하지 않은(활성) 사용자만 조회. 로그인·JWT 인증·비밀번호 재설정·토큰 재발급처럼
+     * "이 계정을 실제로 쓸 수 있는가"를 판단해야 하는 곳에서 findByEmail 대신 사용한다.
+     *
+     * @param email 이메일
+     * @return 탈퇴하지 않은 User || null에 대한 예외처리 (orElse 사용필수)
+     */
+    Optional<User> findByEmailAndDeletedAtIsNull(String email);
+
+    /**
      * 해당 이메일을 가진 사용자가 DB에 이미 존재하는지
      *
      * @param email 이메일

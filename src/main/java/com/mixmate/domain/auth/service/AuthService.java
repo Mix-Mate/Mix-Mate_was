@@ -3,6 +3,7 @@ package com.mixmate.domain.auth.service;
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
+import com.mixmate.domain.auth.dto.request.WithdrawReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
 import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
 import com.mixmate.domain.auth.entity.User;
@@ -70,8 +71,8 @@ public class AuthService {
      */
     @Transactional
     public LoginResDto login(LoginReqDto dto) {
-        // 1. 사용자 조회
-        User user = userRepository.findByEmail(dto.getEmail())
+        // 1. 사용자 조회 (탈퇴한 계정은 존재하지 않는 것과 동일하게 처리)
+        User user = userRepository.findByEmailAndDeletedAtIsNull(dto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 2. 비밀번호 확인
@@ -97,7 +98,7 @@ public class AuthService {
      */
     @Transactional
     public void resetPassword(PasswordResetReqDto dto) {
-        User user = userRepository.findByEmail(dto.getEmail())
+        User user = userRepository.findByEmailAndDeletedAtIsNull(dto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         String verifiedKey = PW_RESET_VERIFIED_PREFIX + dto.getEmail();
@@ -132,7 +133,7 @@ public class AuthService {
             throw new CustomException(ErrorCode.JWT_TOKEN_PARSING_ERROR);
         }
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         String savedRefreshToken = tokenService.getRefreshToken(user.getUserId());
@@ -167,5 +168,42 @@ public class AuthService {
 
         long remainingTime = jwtUtil.getExpiration(accessToken);
         redisService.setDataExpire(BLACKLIST_PREFIX + accessToken, "logout", remainingTime);
+    }
+
+    /**
+     * 회원 탈퇴 서비스 (소프트 딜리트)
+     *
+     * User 행을 지우지 않고 deletedAt만 찍는다. 참가·투표 등 이미 쌓인 데이터는 그대로 남기고,
+     * 로그인·JWT 인증·비밀번호 재설정·토큰 재발급을 전부 막아 계정을 더 쓸 수 없게 만드는 방식이다.
+     * 현재 기기의 리프레시 토큰을 지우고 액세스 토큰을 블랙리스트에 등록해, 다른 기기의 세션도 함께 끊는다.
+     *
+     * @param accessToken 현재 액세스 토큰 (본인 확인 및 세션 종료용)
+     * @param dto         본인 확인용 비밀번호
+     */
+    @Transactional
+    public void withdraw(String accessToken, WithdrawReqDto dto) {
+        if (accessToken == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+
+        String email;
+        try {
+            email = jwtUtil.getEmailFromToken(accessToken);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+
+        User user = userRepository.findByEmailAndDeletedAtIsNull(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        user.withdraw();
+        tokenService.deleteRefreshToken(user.getUserId());
+
+        long remainingTime = jwtUtil.getExpiration(accessToken);
+        redisService.setDataExpire(BLACKLIST_PREFIX + accessToken, "withdraw", remainingTime);
     }
 }
