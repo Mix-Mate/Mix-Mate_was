@@ -67,7 +67,7 @@ public class ParticipantService {
 
     /**
      * 같은 그룹 참가자의 상세 프로필을 조회합니다.
-     * 대상이 비공개(PRIVATE)면 거부되지만, 본인 프로필은 공개 여부와 무관하게 항상 조회됩니다.
+     * 대상이 비공개(PRIVATE)면 거부되지만, 본인 프로필과 관리자(HOST)의 조회는 공개 여부와 무관하게 항상 허용됩니다.
      */
     @Transactional(readOnly = true)
     public ParticipantProfileResponse getParticipantProfile(Long groupId, Long participantId, Long userId) {
@@ -77,7 +77,8 @@ public class ParticipantService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "참가자를 찾을 수 없습니다."));
 
         boolean isSelf = participant.getParticipantId().equals(me.getParticipantId());
-        if (!isSelf && participant.getProfile().getVisibility() == Visibility.PRIVATE) {
+        boolean isHost = me.getRole() == Role.HOST;
+        if (!isSelf && !isHost && participant.getProfile().getVisibility() == Visibility.PRIVATE) {
             throw new CustomException(ErrorCode.FORBIDDEN, "비공개 프로필입니다.");
         }
 

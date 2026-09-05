@@ -78,7 +78,7 @@ public interface ParticipantApi {
 
     @Operation(summary = "참가자 프로필 조회",
             description = "같은 그룹 참가자의 상세 프로필을 조회합니다. "
-                    + "대상이 비공개(PRIVATE)면 거부되지만, 본인 프로필은 공개 여부와 무관하게 항상 조회됩니다. "
+                    + "대상이 비공개(PRIVATE)면 거부되지만, 본인 프로필과 관리자(HOST)의 조회는 공개 여부와 무관하게 항상 허용됩니다. "
                     + "그룹 진행 상태와 무관하게 호출할 수 있습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공",
