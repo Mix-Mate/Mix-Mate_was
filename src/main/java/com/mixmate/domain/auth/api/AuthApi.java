@@ -4,6 +4,7 @@ import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
 import com.mixmate.domain.auth.dto.request.TokenReissueReqDto;
+import com.mixmate.domain.auth.dto.request.WithdrawReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
 import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,12 +19,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@Tag(name = "인증", description = "회원가입, 이메일 인증, 로그인, 로그아웃 API. 이 태그의 모든 API는 로그인 없이 호출 가능합니다.")
+@Tag(name = "인증", description = "회원가입, 이메일 인증, 로그인, 로그아웃 API. "
+        + "이 태그의 대부분 API는 로그인 없이 호출 가능하지만, 회원탈퇴(withdraw)는 로그인이 필요합니다.")
 @RequestMapping(value = "/api/v1/auth", produces = MediaType.APPLICATION_JSON_VALUE)
 public interface AuthApi {
 
@@ -170,4 +173,29 @@ public interface AuthApi {
     })
     @PostMapping("/logout")
     ResponseEntity<String> logout(@Parameter(hidden = true) HttpServletRequest request);
+
+    @Operation(summary = "회원 탈퇴 (로그인 필요)",
+            description = "본인 확인을 위해 현재 비밀번호를 함께 받습니다. 계정 행은 지우지 않고 탈퇴 시각만 기록하는 "
+                    + "소프트 딜리트 방식이며, 지금까지 참여한 그룹·투표 기록은 그대로 남습니다. "
+                    + "성공 시 리프레시 토큰을 삭제하고 현재 액세스 토큰을 블랙리스트에 등록해 모든 기기의 로그인을 즉시 무효화합니다. "
+                    + "탈퇴한 계정으로는 다시 로그인할 수 없지만, 같은 이메일로 새로 회원가입하는 것은 가능합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "탈퇴 성공"),
+            @ApiResponse(responseCode = "401", description = "로그인이 필요하거나(토큰 없음/만료) 비밀번호가 일치하지 않음",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "로그인 필요", value = """
+                                        { "code": "UNAUTHORIZED", "message": "로그인이 필요합니다." }
+                                    """),
+                            @ExampleObject(name = "비밀번호 불일치", value = """
+                                        { "code": "INVALID_PASSWORD", "message": "이메일 또는 비밀번호가 일치하지 않습니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 사용자",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "USER_NOT_FOUND", "message": "사용자를 찾을 수 없습니다." }
+                            """)))
+    })
+    @DeleteMapping("/withdraw")
+    ResponseEntity<String> withdraw(@Valid @RequestBody WithdrawReqDto withdrawReqDto,
+                                     @Parameter(hidden = true) HttpServletRequest request);
 }
