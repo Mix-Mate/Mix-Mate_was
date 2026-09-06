@@ -1,8 +1,13 @@
 # 🍻 MixMate — 처음 보는 사람들과도 자연스럽게 섞이는 술자리 매칭 서비스
 
-<img width="100%" alt="Frame 34" src="https://github.com/user-attachments/assets/67491883-0ec6-4086-ac86-89e6e02397f9" />
+<img width="100%" alt="표지" src="https://github.com/user-attachments/assets/5e707b57-3ea8-41de-937f-35d1ed19365b" />
 
-같은 학교 학생들이 초대코드로 모여 소규모 그룹을 만들고, 성별·MBTI·학년 조건에 맞춰 자동으로 조를 편성해주는 서비스입니다. 1차 모임이 끝나면 MVP 투표와 2차 참여 여부 투표를 진행해 다음 조 편성까지 이어집니다.
+ [📎MixMate URL](https://mix-mate-web.vercel.app/
+)
+
+> MixMate는 참가자 모집과 자동 조 편성, 술게임·대화 주제 추천, MVP·2차 참여 투표를 하나의 흐름으로 연결하는 모임 운영 서비스입니다.   
+운영자는 모임의 진행을 관리하고, 참가자는 자신의 조와 다음 활동을 확인하며 자연스럽게 어울릴 수 있습니다.  
+ <br/>
 
 현재 학생들을 상대로 실사용 운영중입니다.
 
@@ -16,27 +21,39 @@
 
 ---
 
+## 서비스 소개
+<img width="100%" alt="README • About MixMate" src="https://github.com/user-attachments/assets/b3058c84-402f-4b8e-ab49-9d6b75bba6d2" />
+
+## 서비스 이용 흐름
+
+<img width="100%" alt="README • User Flow" src="https://github.com/user-attachments/assets/c56e5577-086c-436c-bed2-85ccefae39cf" />
+
 ## 목차
 
-- [기획 배경](#기획-배경)
+- [Architecture](#architecture)
+- [ERD](#erd)
 - [핵심 기능](#핵심-기능)
 - [기술 스택](#tech-stack)
-- [아키텍처](#architecture)
-- [ERD](#erd)
 - [팀 구성](#팀-구성)
 - [브랜치 · 커밋 컨벤션](#브랜치--커밋-컨벤션)
 
+
 ---
 
-## 💡 기획 배경
+## 🏗️ Architecture
+=== 아키텍처 사진 추가 예정 ===
 
-대학생들을 대상으로 불편한 점을 조사하던 중, 동아리·학생회에서 술자리 조를 짤 때 다음과 같은 어려움이 반복된다는 걸 발견했습니다.
 
-- 성별·MBTI·학년 등 여러 조건을 고려해 조원을 수기로 배정하는 게 번거롭다
-- 참가자 명단을 엑셀·카톡으로 따로 관리하다 보니 누락·중복이 잦다
-- 1차가 끝난 뒤 2차 참여 여부를 다시 취합하고, 조를 새로 짜야 할 때 처음부터 반복해야 한다
+- **Docker / Docker Compose**: 로컬(`docker-compose.local.yml`)과 운영(`docker-compose.yml`) 구성을 분리해, "내 컴퓨터에서는 되는데" 문제 없이 앱·DB·캐시·프록시를 하나의 정의로 재현합니다.
+- **Caddy**: Nginx 대비 최소 설정으로 Let's Encrypt 인증서 발급·갱신을 자동 처리합니다.
+- **MySQL 포트 제한**: 3306은 `127.0.0.1`에만 바인딩해 외부에서 직접 접근할 수 없고, DB 확인은 SSH 터널을 통해서만 가능합니다.
+- **CI/CD**: `dev` 브랜치 push 시 GitHub Actions가 이미지를 빌드해 Docker Hub에 올리고, SSH로 EC2에 접속해 최신 이미지로 재기동합니다. 수동 배포로 인한 실수(옛날 이미지 재기동, 설정 누락)를 없애기 위한 선택이었습니다.
 
-MixMate는 이 과정을 초대코드 참가 → 조건 기반 자동 조 편성 → 투표 기반 다음 라운드 진행까지 하나의 플로우로 묶어, 운영진이 수작업으로 하던 매칭·명단 관리를 자동화하기 위해 만들었습니다.
+---
+
+## 🗂️ ERD
+
+<img width="1590" height="837" alt="Image" src="https://github.com/user-attachments/assets/207d7af8-76cd-4e3e-8c13-ca14d8fe57f0" />
 
 ---
 
@@ -74,22 +91,6 @@ MixMate는 이 과정을 초대코드 참가 → 조건 기반 자동 조 편성
 
 ---
 
-## 🏗️ Architecture
-=== 아키텍처 사진 추가 예정 ===
-
-
-- **Docker / Docker Compose**: 로컬(`docker-compose.local.yml`)과 운영(`docker-compose.yml`) 구성을 분리해, "내 컴퓨터에서는 되는데" 문제 없이 앱·DB·캐시·프록시를 하나의 정의로 재현합니다.
-- **Caddy**: Nginx 대비 최소 설정으로 Let's Encrypt 인증서 발급·갱신을 자동 처리합니다.
-- **MySQL 포트 제한**: 3306은 `127.0.0.1`에만 바인딩해 외부에서 직접 접근할 수 없고, DB 확인은 SSH 터널을 통해서만 가능합니다.
-- **CI/CD**: `dev` 브랜치 push 시 GitHub Actions가 이미지를 빌드해 Docker Hub에 올리고, SSH로 EC2에 접속해 최신 이미지로 재기동합니다. 수동 배포로 인한 실수(옛날 이미지 재기동, 설정 누락)를 없애기 위한 선택이었습니다.
-
----
-
-## 🗂️ ERD
-
-<img width="1590" height="837" alt="Image" src="https://github.com/user-attachments/assets/207d7af8-76cd-4e3e-8c13-ca14d8fe57f0" />
-
----
 
 ## 🧑‍🤝‍🧑 팀 구성
 
