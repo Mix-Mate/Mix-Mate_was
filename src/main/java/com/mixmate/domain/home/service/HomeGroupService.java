@@ -81,8 +81,11 @@ public class HomeGroupService {
 
     /**
      * 로그인한 사용자 본인이 참여중인(관리자·일반 참여자 모두 포함) 그룹 목록을 조회한다.
-     * state=active면 FINISHED를 제외한 진행중인 그룹만, state=finished면 FINISHED인 그룹만 내려준다.
-     * 참여 그룹이 없으면 빈 배열을 담아 200으로 응답한다.
+     * state=active면 FINISHED를 제외한 진행중인 그룹만, state=finished면 FINISHED인 그룹만,
+     * state=banned면 차단당한 그룹 목록을 내려준다. 참여/차단 그룹이 없으면 빈 배열을 담아 200으로 응답한다.
+     *
+     * 차단당하면 Participant 행 자체가 삭제되므로(관리자가 대신 등록한 것처럼 취급되지 않는 한),
+     * banned는 participant가 아니라 GroupBan을 별도로 조회한다.
      */
     @Transactional(readOnly = true)
     public HomeGroupListResDto getMyGroups(Long userId, String scope, String state) {
@@ -93,6 +96,14 @@ public class HomeGroupService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
+        List<HomeGroupSummaryResDto> groups;
+        if ("banned".equalsIgnoreCase(state)) {
+            groups = groupBanRepository.findAllByUserWithGroup(user).stream()
+                    .map(HomeGroupSummaryResDto::fromBan)
+                    .toList();
+            return HomeGroupListResDto.builder().groups(groups).build();
+        }
+
         List<Participant> participants;
         if ("active".equalsIgnoreCase(state)) {
             participants = participantRepository.findByUserAndGroup_StatusNot(user, GroupStatus.FINISHED);
@@ -102,7 +113,7 @@ public class HomeGroupService {
             throw new CustomException(ErrorCode.INVALID_PARAMETER);
         }
 
-        List<HomeGroupSummaryResDto> groups = participants.stream()
+        groups = participants.stream()
                 .map(p -> HomeGroupSummaryResDto.fromEntity(
                         p.getGroup(), p.getRole(), participantRepository.countByGroup(p.getGroup())))
                 .toList();
