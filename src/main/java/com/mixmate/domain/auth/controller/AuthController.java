@@ -12,7 +12,6 @@ import com.mixmate.domain.auth.service.AuthService;
 import com.mixmate.domain.auth.service.PasswordResetEmailService;
 import com.mixmate.domain.auth.service.SignUpEmailService;
 import com.mixmate.security.JwtUtil;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -124,8 +122,9 @@ public class AuthController implements AuthApi {
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
-        // 1. 요청의 쿠키에서 액세스 토큰 꺼내기
-        String token = extractCookie(request, "accessToken");
+        // 1. 요청에서 액세스 토큰 꺼내기 (Authorization 헤더 우선, 없으면 쿠키 — 모바일 브라우저는
+        //    크로스도메인 SameSite=None 쿠키를 저장하지 않는 경우가 있어 쿠키만 보면 안 된다)
+        String token = jwtUtil.resolveToken(request);
 
         // 2. 서비스 로직 실행 (DB 리프레시 토큰 삭제 + 레디스 블랙리스트 등록)
         if (token != null) {
@@ -145,7 +144,7 @@ public class AuthController implements AuthApi {
     // 회원 탈퇴 API (소프트 딜리트)
     @DeleteMapping("/withdraw")
     public ResponseEntity<String> withdraw(@Valid @RequestBody WithdrawReqDto withdrawReqDto, HttpServletRequest request) {
-        String token = extractCookie(request, "accessToken");
+        String token = jwtUtil.resolveToken(request);
         authService.withdraw(token, withdrawReqDto);
 
         ResponseCookie expiredAccessCookie = createCookie("accessToken", "", 0);
@@ -155,17 +154,6 @@ public class AuthController implements AuthApi {
                 .header(HttpHeaders.SET_COOKIE, expiredAccessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, expiredRefreshCookie.toString())
                 .body("회원 탈퇴가 완료되었습니다.");
-    }
-
-    private String extractCookie(HttpServletRequest request, String name) {
-        if (request.getCookies() == null) {
-            return null;
-        }
-        return Arrays.stream(request.getCookies())
-                .filter(c -> name.equals(c.getName()))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElse(null);
     }
 
     private ResponseCookie createCookie(String name, String value, long maxAgeMillis) {
