@@ -1,6 +1,7 @@
 package com.mixmate.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -24,6 +25,10 @@ public class SignUpEmailService {
     private final JavaMailSender javaMailSender;
     private final StringRedisTemplate stringRedisTemplate;
 
+    // 발신 주소를 명시하지 않으면 Gmail이 계정의 예전 식별자를 기본값으로 쓸 수 있어 직접 지정한다.
+    @Value("${spring.mail.username}")
+    private String fromAddress;
+
     /**
      * 사용자의 이메일로 6자리 인증 번호를 발송하고, 해당 번호를 Redis에 저장
      * 보안을 위해 저장된 번호는 5분(TTL) 후에 자동으로 삭제
@@ -35,6 +40,7 @@ public class SignUpEmailService {
         String code = generateCode();
 
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromAddress);
         message.setTo(email);
         message.setSubject("[Mixmate] 회원가입 인증 번호입니다.");
         message.setText("인증 번호: " + code + "\n5분 이내에 입력해주세요.");

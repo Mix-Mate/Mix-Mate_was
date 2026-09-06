@@ -4,6 +4,7 @@ import com.mixmate.domain.auth.repository.UserRepository;
 import com.mixmate.exception.CustomException;
 import com.mixmate.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -30,6 +31,10 @@ public class PasswordResetEmailService {
     private final StringRedisTemplate stringRedisTemplate;
     private final UserRepository userRepository;
 
+    // 발신 주소를 명시하지 않으면 Gmail이 계정의 예전 식별자를 기본값으로 쓸 수 있어 직접 지정한다.
+    @Value("${spring.mail.username}")
+    private String fromAddress;
+
     /**
      * 가입된 이메일로 6자리 인증 번호를 발송하고, 해당 번호를 Redis에 5분간 저장합니다.
      *
@@ -44,6 +49,7 @@ public class PasswordResetEmailService {
         String code = generateCode();
 
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromAddress);
         message.setTo(email);
         message.setSubject("[Mixmate] 비밀번호 재설정 인증 번호입니다.");
         message.setText("인증 번호: " + code + "\n5분 이내에 입력해주세요.");
