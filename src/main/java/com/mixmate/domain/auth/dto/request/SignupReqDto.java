@@ -4,6 +4,7 @@ import com.mixmate.domain.auth.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -28,6 +29,9 @@ public class SignupReqDto {
 
     @Schema(description = "사용자 이름", example = "홍길동")
     @NotBlank(message = "이름은 필수입니다.")
+    @Size(max = 10, message = "이름은 10자를 넘을 수 없습니다.")
+    @Pattern(regexp = "^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ._-]*$",
+            message = "이름에는 한글, 영문, 숫자와 일부 기호만 사용할 수 있습니다.")
     private final String userName;
 
     public User toEntity(PasswordEncoder passwordEncoder) {
