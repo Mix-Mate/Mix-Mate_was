@@ -22,10 +22,10 @@ public class Group {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long groupId;
 
-    @Column(name = "group_name", nullable = false)
+    @Column(name = "group_name", nullable = false, length = 30)
     private String groupName;
 
-    @Column
+    @Column(length = 120)
     private String description;
 
     @Column(nullable = false)
