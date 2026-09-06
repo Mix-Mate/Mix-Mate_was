@@ -87,8 +87,9 @@ public interface HomeGroupApi {
 
     @Operation(summary = "내 그룹 목록 조회",
             description = "로그인한 사용자 본인이 참여중인 그룹 목록을 조회합니다(관리자·일반 참여자 모두 포함). "
-                    + "state=active면 FINISHED를 제외한 진행중인 그룹만, state=finished면 종료된 그룹만 내려줍니다. "
-                    + "참여 그룹이 없으면 빈 배열로 200을 반환합니다.")
+                    + "state=active면 FINISHED를 제외한 진행중인 그룹만, state=finished면 종료된 그룹만, "
+                    + "state=banned면 현재 차단당한 그룹 목록(그룹명·차단 사유·차단 시각)을 내려줍니다. "
+                    + "참여/차단 그룹이 없으면 빈 배열로 200을 반환합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -105,7 +106,7 @@ public interface HomeGroupApi {
     @GetMapping
     ResponseEntity<HomeGroupListResDto> getMyGroups(
             @Parameter(description = "조회 범위. 현재는 \"me\"만 지원", required = true) @RequestParam String scope,
-            @Parameter(description = "\"active\"(진행중) 또는 \"finished\"(종료)", required = true) @RequestParam String state,
+            @Parameter(description = "\"active\"(진행중), \"finished\"(종료) 또는 \"banned\"(차단됨)", required = true) @RequestParam String state,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 }

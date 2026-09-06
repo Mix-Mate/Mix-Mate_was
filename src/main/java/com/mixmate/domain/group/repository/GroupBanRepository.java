@@ -18,6 +18,10 @@ public interface GroupBanRepository extends JpaRepository<GroupBan, Long> {
     @Query("SELECT b FROM GroupBan b JOIN FETCH b.user WHERE b.group = :group ORDER BY b.createdAt DESC")
     List<GroupBan> findAllByGroupWithUser(@Param("group") Group group);
 
+    // 그룹명을 응답에 내려줘야 해서 group도 함께 가져온다. 차단당한 본인이 "내가 어디서 차단됐는지" 조회할 때 쓴다.
+    @Query("SELECT b FROM GroupBan b JOIN FETCH b.group WHERE b.user = :user ORDER BY b.createdAt DESC")
+    List<GroupBan> findAllByUserWithGroup(@Param("user") User user);
+
     long deleteByGroupAndUser_UserId(Group group, Long userId);
 
     @Modifying
