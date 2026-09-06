@@ -18,6 +18,9 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)](.)
 [![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)](.)
 [![Docker](https://img.shields.io/badge/Docker%20Compose-2496ED?logo=docker&logoColor=white)](.)
+[![AWS](https://img.shields.io/badge/AWS-EC2-FF9900?logo=amazonaws&logoColor=white)](.)
+[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=githubactions&logoColor=white)](.)
+
 
 ---
 
@@ -91,7 +94,7 @@
 | 인증 | JWT (jjwt), Redis 기반 Refresh Token 재발급 / 블랙리스트 |
 | 실시간 | SSE(Server-Sent Events) — 그룹 진행 상태 실시간 push |
 | 문서화 | Swagger (springdoc-openapi) |
-| 인프라 | Docker, Docker Compose, Caddy(리버스 프록시), GitHub Actions(CI/CD) |
+| 인프라 | AWS, Docker, Docker Compose, Caddy(리버스 프록시), GitHub Actions(CI/CD) |
 
 ---
 
