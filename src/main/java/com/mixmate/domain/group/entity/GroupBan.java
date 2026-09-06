@@ -39,7 +39,7 @@ public class GroupBan {
     @JoinColumn(name = "group_id", nullable = false)
     private Group group;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 10)
     private String displayName;
 
     @Column(length = 30)

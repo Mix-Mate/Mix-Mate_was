@@ -14,14 +14,14 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ParticipantProfile {
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 10)
     private String displayName;
 
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private Position position;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String major;
 
     @Column(nullable = false)
@@ -42,10 +42,10 @@ public class ParticipantProfile {
     @Column
     private Integer age;
 
-    @Column
+    @Column(length = 30)
     private String instaId;
 
-    @Column
+    @Column(length = 120)
     private String bio;
 
     @Column(nullable = false)
