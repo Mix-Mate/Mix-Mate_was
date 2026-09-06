@@ -28,6 +28,10 @@
 
 <img width="100%" alt="README • User Flow" src="https://github.com/user-attachments/assets/c56e5577-086c-436c-bed2-85ccefae39cf" />
 
+## 주요 기능
+<img width="100%" alt="README • Key Features 4" src="https://github.com/user-attachments/assets/7559697d-76df-4c69-8dce-54f6f5faf7ba" />
+<img width="100%" alt="README • Key Features 5" src="https://github.com/user-attachments/assets/362da093-c4c1-484f-8182-33ea175edec1" />
+
 ## 목차
 
 - [Architecture](#architecture)
