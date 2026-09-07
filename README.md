@@ -31,6 +31,34 @@
 
 <img width="100%" alt="README • User Flow" src="https://github.com/user-attachments/assets/c56e5577-086c-436c-bed2-85ccefae39cf" />
 
+## Preview
+
+<table>
+  <thead>
+    <tr>
+      <th width="33%">그룹 생성 및 참가</th>
+      <th width="33%">조 편성 및 모임 진행</th>
+      <th width="33%">MVP · 2차 참여 투표</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center" valign="top">
+        <img width="70%" alt="GIF1" src="https://github.com/user-attachments/assets/9583ca31-b780-457c-a992-da6648e61b27" />
+        <p>그룹을 만들고 참여 코드로 함께하기</p>
+      </td>
+      <td align="center" valign="top">
+       <img width="70%" height="742" alt="GIF2" src="https://github.com/user-attachments/assets/3123033f-55fa-441c-b9aa-dde4399c5a59" />
+        <p>조를 편성하고 같은 조 멤버 확인하기</p>
+      </td>
+      <td align="center" valign="top">
+        <img width="70%" alt="GIF3" src="https://github.com/user-attachments/assets/3f549f6b-2cf5-4c9e-87cf-799dbc7e150f" />
+        <p>모임의 MVP와 다음 일정 참여자 확인하기</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## 주요 기능
 <img width="100%" alt="README • Key Features 4" src="https://github.com/user-attachments/assets/7559697d-76df-4c69-8dce-54f6f5faf7ba" />
 <img width="100%" alt="README • Key Features 5" src="https://github.com/user-attachments/assets/362da093-c4c1-484f-8182-33ea175edec1" />
