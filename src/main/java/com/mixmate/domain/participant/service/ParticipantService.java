@@ -8,8 +8,10 @@ import com.mixmate.domain.group.dto.GroupBanSummary;
 import com.mixmate.domain.group.dto.response.GroupBanListResponse;
 import com.mixmate.domain.group.repository.GroupBanRepository;
 import com.mixmate.domain.group.repository.GroupRepository;
+import com.mixmate.domain.participant.dto.request.ParticipantBulkAddRequest;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
 import com.mixmate.domain.participant.dto.response.MyProfileResponse;
+import com.mixmate.domain.participant.dto.response.ParticipantBulkAddResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
 import com.mixmate.domain.participant.dto.ParticipantSummary;
@@ -192,8 +194,30 @@ public class ParticipantService {
         Participant addedParticipant = Participant.addByHost(group, dto.toEntity());
         participantRepository.save(addedParticipant);
 
-        // 이 참가자는 기존 편성 어디에도 없다. 그대로 두면 조가 없는 채로 확정된다.
+        // 이 참가자는 기존 편성 어디에도 없다. 그대로 두면 조가 없는 채로 확정될 수 있다.
         assignmentReset.resetByGroup(group);
         return addedParticipant.getParticipantId();
+    }
+
+    /**
+     * 관리자(HOST)가 조 편성 이전에 로그인 계정이 없는 오프라인 참가자 여러 명을 한 번에 등록합니다.
+     * 명단 전체를 한 트랜잭션에서 저장하므로, 중간에 실패하면 아무도 저장되지 않습니다.
+     * 조 편성 초기화는 추가한 인원 수와 무관하게 한 번만 일어납니다.
+     */
+    @Transactional
+    public ParticipantBulkAddResponse addParticipants(ParticipantBulkAddRequest dto, Long groupId, Long userId) {
+        Group group = groupMembership.getHost(groupId, userId).getGroup();
+
+        if (!group.getStatus().isBeforeFirstAssignment())
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "1차 진행 이전에만 참가자를 추가할 수 있습니다.");
+
+        List<Participant> addedParticipants = dto.participants().stream().map(
+                request -> Participant.addByHost(group, request.toEntity())).toList();
+
+        participantRepository.saveAll(addedParticipants);
+
+        // 이 참가자는 기존 편성 어디에도 없다. 그대로 두면 조가 없는 채로 확정될 수 있다.
+        assignmentReset.resetByGroup(group);
+        return new ParticipantBulkAddResponse(addedParticipants.size());
     }
 }
