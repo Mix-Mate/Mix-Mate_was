@@ -5,12 +5,16 @@ import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
 import com.mixmate.domain.auth.dto.request.TokenReissueReqDto;
+import com.mixmate.domain.auth.dto.request.UserNameUpdateReqDto;
 import com.mixmate.domain.auth.dto.request.WithdrawReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
 import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
 import com.mixmate.domain.auth.service.AuthService;
 import com.mixmate.domain.auth.service.PasswordResetEmailService;
 import com.mixmate.domain.auth.service.SignUpEmailService;
+import com.mixmate.exception.CustomException;
+import com.mixmate.exception.ErrorCode;
+import com.mixmate.security.CustomUserDetails;
 import com.mixmate.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -18,7 +22,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -154,6 +160,20 @@ public class AuthController implements AuthApi {
                 .header(HttpHeaders.SET_COOKIE, expiredAccessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, expiredRefreshCookie.toString())
                 .body("회원 탈퇴가 완료되었습니다.");
+    }
+
+    // 마이페이지 이름 수정 API
+    @PatchMapping("/name")
+    public ResponseEntity<String> updateUserName(
+            @Valid @RequestBody UserNameUpdateReqDto userNameUpdateReqDto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        // /api/v1/auth/**는 permitAll이라 토큰이 없으면 userDetails가 null로 들어온다.
+        if (userDetails == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        authService.updateUserName(userDetails.getUserId(), userNameUpdateReqDto);
+        return ResponseEntity.ok("이름이 변경되었습니다.");
     }
 
     private ResponseCookie createCookie(String name, String value, long maxAgeMillis) {
