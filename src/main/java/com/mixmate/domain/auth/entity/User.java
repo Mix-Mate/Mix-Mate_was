@@ -44,6 +44,10 @@ public class User {
         this.password = encodedPassword;
     }
 
+    public void updateUserName(String userName) {
+        this.userName = userName;
+    }
+
     /**
      * email에 unique 제약이 걸려있어, 탈퇴 후에도 원래 이메일을 그대로 두면 같은 이메일로 재가입할 수 없다.
      * userId를 붙여 값 자체를 바꿔치기해 원래 이메일을 반납하면서도, 이 행 자체의 유니크 제약은 그대로 만족시킨다.

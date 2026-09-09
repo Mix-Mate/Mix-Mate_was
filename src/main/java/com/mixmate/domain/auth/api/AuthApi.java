@@ -4,9 +4,11 @@ import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
 import com.mixmate.domain.auth.dto.request.TokenReissueReqDto;
+import com.mixmate.domain.auth.dto.request.UserNameUpdateReqDto;
 import com.mixmate.domain.auth.dto.request.WithdrawReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
 import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
+import com.mixmate.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,7 +21,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -198,4 +202,30 @@ public interface AuthApi {
     @DeleteMapping("/withdraw")
     ResponseEntity<String> withdraw(@Valid @RequestBody WithdrawReqDto withdrawReqDto,
                                      @Parameter(hidden = true) HttpServletRequest request);
+
+    @Operation(summary = "마이페이지 이름 수정 (로그인 필요)",
+            description = "로그인한 사용자 본인의 표시 이름(userName)을 수정합니다. 최대 10자입니다. "
+                    + "그룹별 프로필의 표시 이름(displayName)과는 별개로, 마이페이지·홈 화면 인사말 등 계정 전역에서 쓰이는 이름입니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "수정 성공"),
+            @ApiResponse(responseCode = "400", description = "이름 누락, 10자 초과, <, > 문자 포함 등 입력값 오류",
+                    content = @Content(examples = @ExampleObject(value = """
+                                {
+                                  "code": "INVALID_PARAMETER",
+                                  "message": "입력값이 올바르지 않습니다.",
+                                  "errors": { "userName": "이름은 최대 10자까지 입력할 수 있습니다." }
+                                }
+                            """))),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 사용자",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "USER_NOT_FOUND", "message": "사용자를 찾을 수 없습니다." }
+                            """)))
+    })
+    @PatchMapping("/name")
+    ResponseEntity<String> updateUserName(@Valid @RequestBody UserNameUpdateReqDto userNameUpdateReqDto,
+                                           @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails);
 }

@@ -3,6 +3,7 @@ package com.mixmate.domain.auth.service;
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
+import com.mixmate.domain.auth.dto.request.UserNameUpdateReqDto;
 import com.mixmate.domain.auth.dto.request.WithdrawReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
 import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
@@ -205,5 +206,19 @@ public class AuthService {
 
         long remainingTime = jwtUtil.getExpiration(accessToken);
         redisService.setDataExpire(BLACKLIST_PREFIX + accessToken, "withdraw", remainingTime);
+    }
+
+    /**
+     * 마이페이지 이름 수정 서비스
+     *
+     * @param userId 로그인한 사용자 식별자
+     * @param dto    새 이름
+     */
+    @Transactional
+    public void updateUserName(Long userId, UserNameUpdateReqDto dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        user.updateUserName(dto.getUserName());
     }
 }
