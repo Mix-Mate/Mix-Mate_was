@@ -62,7 +62,17 @@ public class SecurityConfig {
                                 PathPatternRequestMatcher.withDefaults()
                                         .matcher(HttpMethod.GET, "/api/v1/groups/*/status/stream")
                         )).permitAll()
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+
+                        .requestMatchers(
+                                "/api/v1/auth/signup",
+                                "/api/v1/auth/send",
+                                "/api/v1/auth/verify",
+                                "/api/v1/auth/password/send",
+                                "/api/v1/auth/password/verify",
+                                "/api/v1/auth/password/reset",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/reissue"
+                        ).permitAll()
                         .requestMatchers("/swagger-resources/**", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/webjars/**", "/error").permitAll()
                         .anyRequest().authenticated()
