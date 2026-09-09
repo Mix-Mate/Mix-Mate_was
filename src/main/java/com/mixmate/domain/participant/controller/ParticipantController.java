@@ -2,8 +2,10 @@ package com.mixmate.domain.participant.controller;
 
 import com.mixmate.domain.group.dto.response.GroupBanListResponse;
 import com.mixmate.domain.participant.api.ParticipantApi;
+import com.mixmate.domain.participant.dto.request.ParticipantBulkAddRequest;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
 import com.mixmate.domain.participant.dto.response.MyProfileResponse;
+import com.mixmate.domain.participant.dto.response.ParticipantBulkAddResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
 import com.mixmate.domain.participant.enums.Round;
@@ -11,6 +13,7 @@ import com.mixmate.domain.participant.service.ParticipantService;
 import com.mixmate.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -131,6 +134,23 @@ public class ParticipantController implements ParticipantApi {
         Long participantId = participantService.addParticipant(dto, groupId, userDetails.getUserId());
         URI location = URI.create("/api/v1/groups/" + groupId + "/participants/" + participantId);
         return ResponseEntity.created(location).build();
+    }
+
+    /**
+     * 관리자가 오프라인 참가자 여러 명을 한 번에 등록합니다.
+     * @param groupId 요청 그룹 식별자
+     * @param dto 추가할 참가자들의 프로필 목록
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 추가된 인원 수를 담은 201 응답
+     */
+    public ResponseEntity<ParticipantBulkAddResponse> addParticipants(
+            @PathVariable Long groupId,
+            @Valid @RequestBody ParticipantBulkAddRequest dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(participantService.addParticipants(dto, groupId, userDetails.getUserId()));
     }
 
     /**

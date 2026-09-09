@@ -1,8 +1,10 @@
 package com.mixmate.domain.participant.api;
 
 import com.mixmate.domain.group.dto.response.GroupBanListResponse;
+import com.mixmate.domain.participant.dto.request.ParticipantBulkAddRequest;
 import com.mixmate.domain.participant.dto.request.ParticipantProfileRequest;
 import com.mixmate.domain.participant.dto.response.MyProfileResponse;
+import com.mixmate.domain.participant.dto.response.ParticipantBulkAddResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantListResponse;
 import com.mixmate.domain.participant.dto.response.ParticipantProfileResponse;
 import com.mixmate.domain.participant.enums.Round;
@@ -273,8 +275,7 @@ public interface ParticipantApi {
                     + "1차가 시작되면 명단이 고정되므로 그 전에만 가능하며, 모집 마감 이후에도 할 수 있습니다. "
                     + "이렇게 추가된 참가자는 계정과 연결되지 않아 본인이 프로필을 수정할 수 없으므로, "
                     + "잘못 입력했다면 삭제 후 다시 추가합니다. "
-                    + "이미 실행해둔 조 편성이 있으면 함께 지워집니다. 추가된 참가자가 어느 조에도 없는 채로 "
-                    + "확정되는 것을 막기 위한 것으로, 관리자가 다시 편성해야 합니다.")
+                    + "이미 실행해둔 조 편성이 있으면 함께 지워지므로, 관리자가 다시 편성해야 합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "참가자 추가 성공. 응답 헤더 Location에 추가된 참가자 경로가 담깁니다. 실행해둔 조 편성이 있었다면 초기화됩니다.",
                     content = @Content),
@@ -306,6 +307,74 @@ public interface ParticipantApi {
     ResponseEntity<Void> addParticipant(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Valid @RequestBody ParticipantProfileRequest dto,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "참가자 일괄 추가",
+            description = "관리자가 참가자 여러 명을 한 번에 등록합니다. "
+                    + "배열의 각 원소는 참가자 추가 API의 요청 본문과 같습니다. "
+                    + "한 명이라도 검증에 걸리면 아무도 저장되지 않습니다. "
+                    + "한 번에 100명까지 보낼 수 있고, 같은 이름이 여러 번 들어와도 모두 등록됩니다. "
+                    + "1차가 시작되면 명단이 고정되므로 그 전에만 가능하며, 모집 마감 이후에도 할 수 있습니다. "
+                    + "이미 실행해둔 조 편성이 있으면 함께 지워지므로, 관리자가 다시 편성해야 합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "일괄 추가 성공. 실행해둔 조 편성이 있었다면 초기화됩니다.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ParticipantBulkAddResponse.class))),
+            @ApiResponse(responseCode = "400", description = "입력값 오류. errors의 키에 몇 번째 참가자의 어느 필드가 잘못됐는지 담기며 인덱스는 0부터입니다. "
+                    + "다만 enum 값이 허용값과 다르면 본문을 읽는 단계에서 걸려, 인덱스 없이 필드명만 나가고 한 건씩만 알려줍니다.",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "검증 실패", value = """
+                                        {
+                                          "code": "INVALID_PARAMETER",
+                                          "message": "입력값이 올바르지 않습니다.",
+                                          "errors": {
+                                            "participants[3].displayName": "보여질 이름은 10자를 넘을 수 없습니다.",
+                                            "participants[7].major": "전공을 입력해주세요."
+                                          }
+                                        }
+                                    """),
+                            @ExampleObject(name = "enum 값 불일치", value = """
+                                        {
+                                          "code": "INVALID_PARAMETER",
+                                          "message": "'남'은(는) 허용되지 않는 값입니다.",
+                                          "errors": { "participants.gender": "'남'은(는) 허용되지 않는 값입니다." }
+                                        }
+                                    """),
+                            @ExampleObject(name = "인원 초과", value = """
+                                        {
+                                          "code": "INVALID_PARAMETER",
+                                          "message": "입력값이 올바르지 않습니다.",
+                                          "errors": { "participants": "한 번에 최대로 추가할 수 있는 인원은 100명입니다." }
+                                        }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "이 그룹의 참가자가 아니거나, 관리자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "참가자가 아님", value = """
+                                        { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                                    """),
+                            @ExampleObject(name = "관리자가 아님", value = """
+                                        { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "이미 조 편성이 끝난 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "INVALID_GROUP_STATUS", "message": "1차 진행 이전에만 참가자를 추가할 수 있습니다." }
+                            """)))
+    })
+    @PostMapping("/{groupId}/participants/bulk")
+    ResponseEntity<ParticipantBulkAddResponse> addParticipants(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Valid @RequestBody ParticipantBulkAddRequest dto,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 
