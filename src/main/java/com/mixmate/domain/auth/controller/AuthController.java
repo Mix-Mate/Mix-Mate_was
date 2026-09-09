@@ -12,8 +12,6 @@ import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
 import com.mixmate.domain.auth.service.AuthService;
 import com.mixmate.domain.auth.service.PasswordResetEmailService;
 import com.mixmate.domain.auth.service.SignUpEmailService;
-import com.mixmate.exception.CustomException;
-import com.mixmate.exception.ErrorCode;
 import com.mixmate.security.CustomUserDetails;
 import com.mixmate.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -168,10 +166,6 @@ public class AuthController implements AuthApi {
             @Valid @RequestBody UserNameUpdateReqDto userNameUpdateReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        // /api/v1/auth/**는 permitAll이라 토큰이 없으면 userDetails가 null로 들어온다.
-        if (userDetails == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED, "로그인이 필요합니다.");
-        }
         authService.updateUserName(userDetails.getUserId(), userNameUpdateReqDto);
         return ResponseEntity.ok("이름이 변경되었습니다.");
     }
