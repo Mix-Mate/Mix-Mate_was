@@ -12,6 +12,7 @@ import com.mixmate.domain.assignment.repository.GroupAssignmentRepository;
 import com.mixmate.domain.assignment.repository.TeamAssignmentMemberRepository;
 import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.event.GroupStatusChangedEvent;
+import com.mixmate.domain.group.repository.GroupRepository;
 import com.mixmate.domain.participant.entity.Participant;
 import com.mixmate.domain.participant.enums.Role;
 import com.mixmate.domain.participant.enums.Round;
@@ -49,6 +50,7 @@ public class AssignmentService {
     private final GroupAssignmentRepository groupAssignmentRepository;
     private final TeamAssignmentMemberRepository teamAssignmentMemberRepository;
     private final ParticipantRepository participantRepository;
+    private final GroupRepository groupRepository;
     private final GroupMembership groupMembership;
     private final TeamAssigner teamAssigner;
     private final AssignmentSummarizer assignmentSummarizer;
@@ -60,6 +62,10 @@ public class AssignmentService {
      */
     @Transactional
     public TeamGenerateResponse generate(TeamGenerateRequest dto, Round round, Long groupId, Long userId) {
+        // 두 창에서 동시에 편성하면 서로의 조원을 지우고 넣다가 유니크 제약에 걸린다. 그룹 행을 잠가 직렬화한다.
+        // getHost보다 먼저 잠가야 한다. 그룹을 먼저 읽어두면 잠근 뒤에도 하이버네이트가 그 상태를 갱신하지 않는다.
+        groupRepository.findWithLockByGroupId(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "그룹정보가 없습니다."));
         Group group = groupMembership.getHost(groupId, userId).getGroup();
 
         if (!group.getStatus().canAssign(round)) {
@@ -116,6 +122,9 @@ public class AssignmentService {
      */
     @Transactional
     public void confirm(Round round, Long groupId, Long userId) {
+        // 확정 도중에 편성이 실행되면 이미 확정된 라운드의 편성이 바뀐다. generate와 같은 행을 잠가 막는다.
+        groupRepository.findWithLockByGroupId(groupId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "그룹정보가 없습니다."));
         Group group = groupMembership.getHost(groupId, userId).getGroup();
 
         // 요청한 라운드가 이미 시작됐을 때만 멱등 처리한다.
