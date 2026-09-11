@@ -17,6 +17,14 @@ public class ParticipantProfile {
     @Column(nullable = false, length = 10)
     private String displayName;
 
+    /**
+     * TODO: nullable = false로 조일 것.
+     *       이미 행이 있는 테이블에 NOT NULL을 붙이면 MySQL이 기존 행을 빈 문자열로 채우고
+     *       그냥 통과시키므로(strict 모드에서도 동일), 남은 null을 먼저 없앤 뒤에 바꿔야 함.
+     */
+    @Column(length = 10)
+    private String studentId;
+
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private Position position;
