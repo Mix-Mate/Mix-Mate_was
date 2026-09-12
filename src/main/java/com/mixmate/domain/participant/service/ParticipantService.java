@@ -28,9 +28,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
- * 그룹 참가자 조회와, 조 편성 전 참가자 구성(탈퇴/삭제/대리 등록/차단 관리)을 처리하는 서비스입니다.
+ * 참가자 도메인의 조회와 명단 구성(탈퇴/삭제/대리 등록/차단 관리)을 담당하는 서비스입니다.
+ * 그룹 스코프가 기준은 아니어서, 아직 어느 그룹에도 들어가지 않은 시점의 프로필 조회도 여기 둡니다.
  */
 @Service
 @RequiredArgsConstructor
@@ -85,6 +87,16 @@ public class ParticipantService {
         }
 
         return ParticipantProfileResponse.from(participant);
+    }
+
+    /**
+     * 요청자가 가장 최근에(profileUpdatedAt 기준) 입력·수정한 프로필을 조회합니다.
+     * 그룹 생성·입장 폼의 prefill에 쓰이며, 참가 이력이 없으면 빈 Optional을 반환합니다.
+     */
+    @Transactional(readOnly = true)
+    public Optional<MyProfileResponse> getRecentProfile(Long userId) {
+        return participantRepository.findFirstByUser_UserIdOrderByProfileUpdatedAtDesc(userId)
+                .map(MyProfileResponse::from);
     }
 
     /**

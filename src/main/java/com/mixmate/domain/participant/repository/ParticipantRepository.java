@@ -46,6 +46,12 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
     /** scope=me&state=finished — FINISHED인 그룹만 조회할 때 사용 */
     List<Participant> findByUserAndGroup_Status(User user, GroupStatus status);
 
+    /**
+     * 사용자가 가장 최근에 입력·수정한 프로필을 담은 참가 정보를 가져온다.
+     * 그룹 상태로 거르지 않으므로 종료된(FINISHED) 그룹의 프로필도 후보에 들어간다.
+     */
+    Optional<Participant> findFirstByUser_UserIdOrderByProfileUpdatedAtDesc(Long userId);
+
     @Modifying(clearAutomatically = true)
     @Query("DELETE FROM Participant p WHERE p.group = :group")
     void deleteAllByGroup(@Param("group") Group group);
