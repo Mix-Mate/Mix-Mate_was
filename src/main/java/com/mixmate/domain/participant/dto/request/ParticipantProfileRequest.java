@@ -2,6 +2,7 @@ package com.mixmate.domain.participant.dto.request;
 
 import com.mixmate.domain.participant.entity.ParticipantProfile;
 import com.mixmate.domain.participant.enums.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -17,6 +18,8 @@ public record ParticipantProfileRequest(
 
     // TODO: 프론트에 학번 입력 필드가 배포되면 @NotBlank를 추가할 것.
     //       지금 걸면 학번을 보내지 않는 현재 프론트에서 그룹 생성·입장·대리 등록이 전부 400이 된다.
+    @Schema(description = "학번. 필수값이지만 클라이언트 대응 전까지 검증을 열어둔 상태라, "
+            + "보내지 않거나 빈 값으로 보내면 400 대신 null로 저장됩니다.")
     @Size(max = 10, message = "학번은 10자를 넘을 수 없습니다.")
     @Pattern(regexp = "^[0-9]*$", message = "학번은 숫자만 사용할 수 있습니다.")
     String studentId,
