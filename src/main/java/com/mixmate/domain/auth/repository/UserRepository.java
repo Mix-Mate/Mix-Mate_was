@@ -1,5 +1,6 @@
 package com.mixmate.domain.auth.repository;
 
+import com.mixmate.domain.auth.entity.AuthProvider;
 import com.mixmate.domain.auth.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -31,6 +32,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return
      */
     boolean existsByEmail(String email);
+
+    /**
+     * 소셜 로그인 계정 조회. 이미 카카오로 가입한 적 있는 사용자인지 판단할 때 사용한다.
+     *
+     * @param provider   가입 경로 (KAKAO 등)
+     * @param providerId 해당 제공자가 내려주는 고유 식별자
+     * @return 해당 소셜 계정으로 가입된 User || null에 대한 예외처리 (orElse 사용필수)
+     */
+    Optional<User> findByProviderAndProviderId(AuthProvider provider, String providerId);
 
     // TODO: 초기 ERD에 nickname 컬럼이 없어(user_name이 그 역할인지 불명) 우선 제거합니다.
     //       Spring Data가 기동 시점에 프로퍼티를 찾지 못해 앱이 뜨지 않던 원인입니다.

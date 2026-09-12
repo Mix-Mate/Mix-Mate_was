@@ -1,5 +1,6 @@
 package com.mixmate.domain.auth.api;
 
+import com.mixmate.domain.auth.dto.request.KakaoLoginReqDto;
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
@@ -138,6 +139,31 @@ public interface AuthApi {
     })
     @PostMapping("/login")
     ResponseEntity<LoginResDto> login(@Valid @RequestBody LoginReqDto loginReqDto);
+
+    @Operation(summary = "카카오 로그인",
+            description = "프론트가 카카오로부터 받은 인가 코드(code)로 로그인합니다. 처음 로그인하는 사용자는 자동으로 회원가입됩니다. "
+                    + "응답 형태(토큰, 쿠키)는 일반 로그인과 동일합니다. 카카오 계정에 이메일 동의가 되어 있어야 하고, "
+                    + "이미 일반 회원가입으로 존재하는 이메일이면 자동 연동하지 않고 막습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "로그인(또는 최초 자동 회원가입 후 로그인) 성공",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = LoginResDto.class))),
+            @ApiResponse(responseCode = "400", description = "인가 코드 누락/만료, 카카오 통신 실패, 또는 이메일 동의 안 함",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "카카오 통신 실패·잘못된 코드", value = """
+                                        { "code": "OAUTH_LOGIN_FAILED", "message": "소셜 로그인에 실패했습니다." }
+                                    """),
+                            @ExampleObject(name = "이메일 동의 안 함", value = """
+                                        { "code": "OAUTH_EMAIL_CONSENT_REQUIRED", "message": "카카오 계정에서 이메일 제공에 동의해야 합니다." }
+                                    """)
+                    })),
+            @ApiResponse(responseCode = "409", description = "이미 일반 회원가입으로 존재하는 이메일",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "EMAIL_CONFLICTED", "message": "이미 다른 방식으로 가입된 이메일입니다. 기존 방법으로 로그인해주세요." }
+                            """)))
+    })
+    @PostMapping("/oauth/kakao")
+    ResponseEntity<LoginResDto> kakaoLogin(@Valid @RequestBody KakaoLoginReqDto kakaoLoginReqDto);
 
     @Operation(summary = "accessToken 재발급",
             description = "refreshToken으로 새 accessToken을 발급합니다. refreshToken은 쿠키를 우선 사용하고, "

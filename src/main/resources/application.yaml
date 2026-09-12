@@ -54,6 +54,11 @@ jwt:
   access-expiration: 1800000 # 30분
   refresh-expiration: 1209600000 # 14일
 
+kakao:
+  client-id: ${KAKAO_CLIENT_ID} # 카카오 디벨로퍼스 > 앱 키 > REST API 키
+  client-secret: ${KAKAO_CLIENT_SECRET:} # 보안 탭에서 Client Secret을 활성화하지 않았다면 비워둬도 됨
+  redirect-uri: ${KAKAO_REDIRECT_URI} # 카카오 디벨로퍼스에 등록한 Redirect URI와 정확히 일치해야 함 (프론트 콜백 주소)
+
 logging:
   level:
     org.springframework.security: DEBUG
