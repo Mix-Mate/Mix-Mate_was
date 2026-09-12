@@ -1,6 +1,7 @@
 package com.mixmate.domain.auth.controller;
 
 import com.mixmate.domain.auth.api.AuthApi;
+import com.mixmate.domain.auth.dto.request.GoogleLoginReqDto;
 import com.mixmate.domain.auth.dto.request.KakaoLoginReqDto;
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
@@ -109,6 +110,20 @@ public class AuthController implements AuthApi {
     @PostMapping("/oauth/kakao")
     public ResponseEntity<LoginResDto> kakaoLogin(@Valid @RequestBody KakaoLoginReqDto kakaoLoginReqDto) {
         LoginResDto loginRes = authService.kakaoLogin(kakaoLoginReqDto);
+
+        ResponseCookie accessCookie = createCookie("accessToken", loginRes.getAccessToken(), jwtUtil.getAccessValid());
+        ResponseCookie refreshCookie = createCookie("refreshToken", loginRes.getRefreshToken(), jwtUtil.getRefreshValid());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(loginRes);
+    }
+
+    // 구글 로그인 API (최초 로그인 시 자동 회원가입)
+    @PostMapping("/oauth/google")
+    public ResponseEntity<LoginResDto> googleLogin(@Valid @RequestBody GoogleLoginReqDto googleLoginReqDto) {
+        LoginResDto loginRes = authService.googleLogin(googleLoginReqDto);
 
         ResponseCookie accessCookie = createCookie("accessToken", loginRes.getAccessToken(), jwtUtil.getAccessValid());
         ResponseCookie refreshCookie = createCookie("refreshToken", loginRes.getRefreshToken(), jwtUtil.getRefreshValid());
