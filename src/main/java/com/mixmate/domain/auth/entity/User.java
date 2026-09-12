@@ -65,6 +65,15 @@ public class User {
                 .build();
     }
 
+    public static User ofGoogle(String email, String userName, String providerId) {
+        return User.builder()
+                .email(email)
+                .userName(userName)
+                .provider(AuthProvider.GOOGLE)
+                .providerId(providerId)
+                .build();
+    }
+
     public void updatePassword(String encodedPassword) {
         this.password = encodedPassword;
     }

@@ -1,7 +1,10 @@
 package com.mixmate.domain.auth.service;
 
+import com.mixmate.domain.auth.client.GoogleApiClient;
+import com.mixmate.domain.auth.client.GoogleUserInfo;
 import com.mixmate.domain.auth.client.KakaoApiClient;
 import com.mixmate.domain.auth.client.KakaoUserInfo;
+import com.mixmate.domain.auth.dto.request.GoogleLoginReqDto;
 import com.mixmate.domain.auth.dto.request.KakaoLoginReqDto;
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
@@ -43,6 +46,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final TokenService tokenService;
     private final KakaoApiClient kakaoApiClient;
+    private final GoogleApiClient googleApiClient;
 
     /**
      * 회원가입 서비스
@@ -240,6 +244,29 @@ public class AuthService {
         return LoginResDto.fromEntity(user, accessToken, refreshToken);
     }
 
+    /**
+     * 구글 로그인 서비스
+     *
+     * 인가 코드를 구글 서버와 주고받아 사용자 정보를 얻고, 처음 로그인하는 사용자면 자동으로 회원가입시킨다.
+     * 발급 토큰과 응답 형태는 일반 로그인·카카오 로그인과 동일하다.
+     *
+     * @param dto 프론트가 구글로부터 받은 인가 코드
+     * @return 발급된 토큰과 사용자 정보
+     */
+    @Transactional
+    public LoginResDto googleLogin(GoogleLoginReqDto dto) {
+        GoogleUserInfo info = googleApiClient.getUserInfo(dto.getCode());
+
+        User user = userRepository.findByProviderAndProviderId(AuthProvider.GOOGLE, info.providerId())
+                .orElseGet(() -> registerGoogleUser(info));
+
+        String accessToken = jwtUtil.createAccessToken(user.getEmail());
+        String refreshToken = jwtUtil.createRefreshToken(user.getEmail());
+        tokenService.saveRefreshToken(user.getUserId(), refreshToken);
+
+        return LoginResDto.fromEntity(user, accessToken, refreshToken);
+    }
+
     private User registerKakaoUser(KakaoUserInfo info) {
         if (!StringUtils.hasText(info.email())) {
             // 카카오 이메일 동의항목이 선택 동의로 설정되어 있거나, 비즈 앱 미전환 상태라 이메일을
@@ -256,6 +283,24 @@ public class AuthService {
         String userName = nickname.length() > 10 ? nickname.substring(0, 10) : nickname;
 
         return userRepository.save(User.ofKakao(info.email(), userName, info.providerId()));
+    }
+
+    private User registerGoogleUser(GoogleUserInfo info) {
+        if (!StringUtils.hasText(info.email())) {
+            // 프론트가 인증 URL의 scope에 email을 빠뜨린 경우. 이메일을 JWT subject이자
+            // 유니크 키로 쓰는 지금 구조상 필수로 요구한다.
+            throw new CustomException(ErrorCode.OAUTH_EMAIL_CONSENT_REQUIRED, "구글 계정에서 이메일 제공에 동의해야 합니다.");
+        }
+        if (userRepository.existsByEmail(info.email())) {
+            // 이미 일반 회원가입이나 카카오로 존재하는 이메일이면 자동으로 연동하지 않고 막는다 — 이메일이
+            // 같다고 같은 사람이라고 가정하는 대신, 기존 방법으로 로그인하도록 유도한다.
+            throw new CustomException(ErrorCode.EMAIL_CONFLICTED, "이미 다른 방식으로 가입된 이메일입니다. 기존 방법으로 로그인해주세요.");
+        }
+
+        String name = StringUtils.hasText(info.name()) ? info.name() : "구글사용자";
+        String userName = name.length() > 10 ? name.substring(0, 10) : name;
+
+        return userRepository.save(User.ofGoogle(info.email(), userName, info.providerId()));
     }
 
     /**

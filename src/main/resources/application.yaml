@@ -59,6 +59,11 @@ kakao:
   client-secret: ${KAKAO_CLIENT_SECRET:} # 보안 탭에서 Client Secret을 활성화하지 않았다면 비워둬도 됨
   redirect-uri: ${KAKAO_REDIRECT_URI} # 카카오 디벨로퍼스에 등록한 Redirect URI와 정확히 일치해야 함 (프론트 콜백 주소)
 
+google:
+  client-id: ${GOOGLE_CLIENT_ID} # GCP 콘솔 > Google 인증 플랫폼 > 클라이언트 > 웹 애플리케이션 클라이언트 ID
+  client-secret: ${GOOGLE_CLIENT_SECRET} # 카카오와 달리 구글은 필수라 기본값을 두지 않음
+  redirect-uri: ${GOOGLE_REDIRECT_URI} # 콘솔에 등록한 승인된 리디렉션 URI와 정확히 일치해야 함 (프론트 콜백 주소)
+
 logging:
   level:
     org.springframework.security: DEBUG
