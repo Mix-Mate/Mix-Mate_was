@@ -147,6 +147,7 @@ public interface ParticipantApi {
             description = "요청자 본인의 그룹 프로필을 수정합니다. 참가자 모집 중에만 가능하며, "
                     + "모집을 마감하면 수정할 수 없습니다. "
                     + "PUT이므로 전체 교체이며, age·instaId·bio를 보내지 않으면 null로 지워집니다. "
+                    + "studentId는 필수값이지만 현재 검증이 열려 있어, 함께 보내지 않으면 400 없이 지워집니다. "
                     + "수정 대상은 이 그룹의 프로필뿐이며, 다른 그룹의 프로필에는 영향이 없습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "프로필 수정 성공"),

@@ -2,6 +2,7 @@ package com.mixmate.domain.participant.dto.request;
 
 import com.mixmate.domain.participant.entity.ParticipantProfile;
 import com.mixmate.domain.participant.enums.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -14,6 +15,14 @@ public record ParticipantProfileRequest(
     @Pattern(regexp = "^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9 ._-]*$",
             message = "보여질 이름에는 한글, 영문, 숫자와 일부 기호만 사용할 수 있습니다.")
     String displayName,
+
+    // TODO: 프론트에 학번 입력 필드가 배포되면 @NotBlank를 추가할 것.
+    //       지금 걸면 학번을 보내지 않는 현재 프론트에서 그룹 생성·입장·대리 등록이 전부 400이 된다.
+    @Schema(description = "학번. 필수값이지만 클라이언트 대응 전까지 검증을 열어둔 상태라, "
+            + "보내지 않거나 빈 값으로 보내면 400 대신 null로 저장됩니다.")
+    @Size(max = 10, message = "학번은 10자를 넘을 수 없습니다.")
+    @Pattern(regexp = "^[0-9]*$", message = "학번은 숫자만 사용할 수 있습니다.")
+    String studentId,
 
     @NotNull(message = "직급을 선택해주세요.")
     Position position,
@@ -55,6 +64,7 @@ public record ParticipantProfileRequest(
     public ParticipantProfile toEntity() {
         return ParticipantProfile.builder()
                 .displayName(displayName)
+                .studentId(blankToNull(studentId))
                 .position(position)
                 .major(major)
                 .isNew(isNew)
@@ -66,5 +76,13 @@ public record ParticipantProfileRequest(
                 .bio(bio)
                 .visibility(visibility)
                 .build();
+    }
+
+    /**
+     * 학번 입력 칸을 비운 채 보내면 ""가 들어오는데, 그대로 저장하면 "아직 입력받지 못함"과 구분되지 않는다.
+     * null인 행만 남겨두어야 미입력자를 student_id IS NULL로 셀 수 있다.
+     */
+    private static String blankToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value;
     }
 }

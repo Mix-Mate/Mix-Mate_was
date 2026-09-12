@@ -6,6 +6,7 @@ import com.mixmate.domain.participant.enums.*;
 
 public record MyProfileResponse(
         String displayName,
+        String studentId,
         Position position,
         String major,
         Boolean isNew,
@@ -21,6 +22,7 @@ public record MyProfileResponse(
         ParticipantProfile profile = me.getProfile();
         return new MyProfileResponse(
                 profile.getDisplayName(),
+                profile.getStudentId(),
                 profile.getPosition(),
                 profile.getMajor(),
                 profile.isNew(),
