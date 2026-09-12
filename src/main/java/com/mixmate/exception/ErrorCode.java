@@ -26,6 +26,8 @@ public enum ErrorCode {
     EMAIL_CONFLICTED(HttpStatus.CONFLICT, "이미 가입된 이메일입니다."),
     EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "이메일 인증이 완료되지 않았습니다."),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."),
+    OAUTH_LOGIN_FAILED(HttpStatus.BAD_REQUEST, "소셜 로그인에 실패했습니다."),
+    OAUTH_EMAIL_CONSENT_REQUIRED(HttpStatus.BAD_REQUEST, "카카오 계정에서 이메일 제공에 동의해야 합니다."),
 
     // 그룹 / 참가자
     INVALID_INVITE_CODE(HttpStatus.NOT_FOUND, "유효하지 않은 초대코드입니다."),

@@ -1,5 +1,8 @@
 package com.mixmate.domain.auth.service;
 
+import com.mixmate.domain.auth.client.KakaoApiClient;
+import com.mixmate.domain.auth.client.KakaoUserInfo;
+import com.mixmate.domain.auth.dto.request.KakaoLoginReqDto;
 import com.mixmate.domain.auth.dto.request.LoginReqDto;
 import com.mixmate.domain.auth.dto.request.PasswordResetReqDto;
 import com.mixmate.domain.auth.dto.request.SignupReqDto;
@@ -7,6 +10,7 @@ import com.mixmate.domain.auth.dto.request.UserNameUpdateReqDto;
 import com.mixmate.domain.auth.dto.request.WithdrawReqDto;
 import com.mixmate.domain.auth.dto.response.LoginResDto;
 import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
+import com.mixmate.domain.auth.entity.AuthProvider;
 import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.auth.repository.UserRepository;
 import com.mixmate.exception.CustomException;
@@ -19,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * 회원가입, 로그인, 로그아웃을 처리하는 서비스입니다.
@@ -37,6 +42,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final TokenService tokenService;
+    private final KakaoApiClient kakaoApiClient;
 
     /**
      * 회원가입 서비스
@@ -197,7 +203,9 @@ public class AuthService {
         User user = userRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+        // 소셜 로그인 계정은 비밀번호가 없으므로, 여기까지 도달했다는 것(=JWT 인증 통과) 자체로 본인 확인을 대신한다.
+        if (user.isLocal()
+                && (!StringUtils.hasText(dto.getPassword()) || !passwordEncoder.matches(dto.getPassword(), user.getPassword()))) {
             throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
 
@@ -206,6 +214,48 @@ public class AuthService {
 
         long remainingTime = jwtUtil.getExpiration(accessToken);
         redisService.setDataExpire(BLACKLIST_PREFIX + accessToken, "withdraw", remainingTime);
+    }
+
+    /**
+     * 카카오 로그인 서비스
+     *
+     * 인가 코드를 카카오 서버와 주고받아 사용자 정보를 얻고, 처음 로그인하는 사용자면 자동으로
+     * 회원가입시킨다. 발급하는 토큰의 형태(subject=email)와 응답 형태는 일반 로그인과 동일해서,
+     * 프론트는 로그인 성공 이후 처리를 일반 로그인과 구분할 필요가 없다.
+     *
+     * @param dto 프론트가 카카오로부터 받은 인가 코드
+     * @return 발급된 토큰과 사용자 정보
+     */
+    @Transactional
+    public LoginResDto kakaoLogin(KakaoLoginReqDto dto) {
+        KakaoUserInfo info = kakaoApiClient.getUserInfo(dto.getCode());
+
+        User user = userRepository.findByProviderAndProviderId(AuthProvider.KAKAO, info.providerId())
+                .orElseGet(() -> registerKakaoUser(info));
+
+        String accessToken = jwtUtil.createAccessToken(user.getEmail());
+        String refreshToken = jwtUtil.createRefreshToken(user.getEmail());
+        tokenService.saveRefreshToken(user.getUserId(), refreshToken);
+
+        return LoginResDto.fromEntity(user, accessToken, refreshToken);
+    }
+
+    private User registerKakaoUser(KakaoUserInfo info) {
+        if (!StringUtils.hasText(info.email())) {
+            // 카카오 이메일 동의항목이 선택 동의로 설정되어 있거나, 비즈 앱 미전환 상태라 이메일을
+            // 못 받아온 경우. 이메일을 JWT subject이자 유니크 키로 쓰는 지금 구조상 필수로 요구한다.
+            throw new CustomException(ErrorCode.OAUTH_EMAIL_CONSENT_REQUIRED);
+        }
+        if (userRepository.existsByEmail(info.email())) {
+            // 이미 일반 회원가입으로 존재하는 이메일이면 자동으로 연동하지 않고 막는다 — 이메일이
+            // 같다고 같은 사람이라고 가정하는 대신, 기존 방법으로 로그인하도록 유도한다.
+            throw new CustomException(ErrorCode.EMAIL_CONFLICTED, "이미 다른 방식으로 가입된 이메일입니다. 기존 방법으로 로그인해주세요.");
+        }
+
+        String nickname = StringUtils.hasText(info.nickname()) ? info.nickname() : "카카오사용자";
+        String userName = nickname.length() > 10 ? nickname.substring(0, 10) : nickname;
+
+        return userRepository.save(User.ofKakao(info.email(), userName, info.providerId()));
     }
 
     /**
