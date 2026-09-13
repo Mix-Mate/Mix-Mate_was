@@ -216,6 +216,7 @@ class ParticipantRepositoryTest {
     private ParticipantProfile profile(String displayName) {
         return ParticipantProfile.builder()
                 .displayName(displayName)
+                .studentId("20240001")
                 .position(Position.MEMBER)
                 .major("컴퓨터공학과")
                 .isNew(false)
