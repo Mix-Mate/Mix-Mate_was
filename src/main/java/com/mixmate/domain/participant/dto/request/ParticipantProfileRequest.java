@@ -17,7 +17,7 @@ public record ParticipantProfileRequest(
     String displayName,
 
     @NotBlank(message = "학번을 입력해주세요.")
-    @Size(max = 10, message = "학번은 10자를 넘을 수 없습니다.")
+    @Size(max = 20, message = "학번은 20자를 넘을 수 없습니다.")
     @Pattern(regexp = "^[0-9]*$", message = "학번은 숫자만 사용할 수 있습니다.")
     String studentId,
 

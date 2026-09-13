@@ -17,7 +17,7 @@ public class ParticipantProfile {
     @Column(nullable = false, length = 10)
     private String displayName;
 
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 20)
     private String studentId;
 
     @Column(nullable = false)
