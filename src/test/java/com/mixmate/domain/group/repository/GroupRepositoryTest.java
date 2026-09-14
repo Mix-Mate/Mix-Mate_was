@@ -39,7 +39,7 @@ class GroupRepositoryTest {
     @Test
     @DisplayName("그룹을 저장하면 PK와 createdAt이 채워지고 상태는 최초 배정 전이다")
     void save() {
-        Group group = Group.create("신촌 모임", "1차 술자리", "ABC12345");
+        Group group = Group.create("신촌 모임", "1차 술자리", "ABC12345", "tokenSaveAAAAAAAAAAAAA");
 
         Group saved = groupRepository.save(group);
         em.flush();
@@ -52,7 +52,7 @@ class GroupRepositoryTest {
     @Test
     @DisplayName("초대 코드로 그룹을 찾을 수 있고, 없는 코드면 비어 있다")
     void findByInviteCode() {
-        groupRepository.save(Group.create("신촌 모임", null, "ABC12345"));
+        groupRepository.save(Group.create("신촌 모임", null, "ABC12345", "tokenFindAAAAAAAAAAAAA"));
         em.flush();
         em.clear();
 
@@ -62,6 +62,36 @@ class GroupRepositoryTest {
         assertThat(found).isPresent();
         assertThat(found.get().getGroupName()).isEqualTo("신촌 모임");
         assertThat(notFound).isEmpty();
+    }
+
+    @Test
+    @DisplayName("초대 링크 토큰으로 그룹을 찾을 수 있고, 없는 토큰이면 비어 있다")
+    void findByInviteToken() {
+        groupRepository.save(Group.create("신촌 모임", null, "TKN12345", "tokenLookupAAAAAAAAAAA"));
+        em.flush();
+        em.clear();
+
+        Optional<Group> found = groupRepository.findByInviteToken("tokenLookupAAAAAAAAAAA");
+        Optional<Group> notFound = groupRepository.findByInviteToken("tokenMissingAAAAAAAAAA");
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getGroupName()).isEqualTo("신촌 모임");
+        assertThat(notFound).isEmpty();
+    }
+
+    @Test
+    @DisplayName("초대 링크 토큰 22자가 잘리지 않고 그대로 저장된다")
+    void inviteTokenNotTruncated() {
+        String token = "abcdefghij0123456789AB";   // 컬럼 길이와 같은 22자
+
+        groupRepository.save(Group.create("신촌 모임", null, "LEN12345", token));
+        em.flush();
+        em.clear();
+
+        assertThat(groupRepository.findByInviteToken(token))
+                .get()
+                .extracting(Group::getInviteToken)
+                .isEqualTo(token);
     }
 
     @Test
@@ -75,7 +105,7 @@ class GroupRepositoryTest {
     @Test
     @DisplayName("status는 ordinal이 아니라 문자열로 저장된다")
     void statusStoredAsString() {
-        groupRepository.save(Group.create("신촌 모임", null, "STR12345"));
+        groupRepository.save(Group.create("신촌 모임", null, "STR12345", "tokenStatusAAAAAAAAAAA"));
         em.flush();
 
         Object status = em.createNativeQuery(
