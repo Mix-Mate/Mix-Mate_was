@@ -64,7 +64,7 @@ class ParticipantServiceRosterTest {
 
     @BeforeEach
     void setUp() {
-        group = Group.create("신촌 모임", "1차 술자리", "PTC12345");
+        group = Group.create("신촌 모임", "1차 술자리", "PTC12345", "tokenRosterAAAAAAAAAAA");
         nextParticipantId = 1L;
 
         Participant host = participant("김대현", RoundParticipation.FIRST_ONLY);

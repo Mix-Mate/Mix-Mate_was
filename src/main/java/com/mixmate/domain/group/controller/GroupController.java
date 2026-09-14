@@ -4,6 +4,7 @@ import com.mixmate.domain.group.api.GroupApi;
 import com.mixmate.domain.group.dto.request.GroupCreateRequest;
 import com.mixmate.domain.group.dto.response.GroupCreateResponse;
 import com.mixmate.domain.group.dto.response.GroupDetailResponse;
+import com.mixmate.domain.group.dto.response.GroupInviteResponse;
 import com.mixmate.domain.group.dto.request.GroupUpdateRequest;
 import com.mixmate.domain.group.service.GroupService;
 import com.mixmate.security.CustomUserDetails;
@@ -80,6 +81,19 @@ public class GroupController implements GroupApi {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(groupService.getGroupDetail(groupId, userDetails.getUserId()));
+    }
+
+    /**
+     * 관리자가 공유할 초대 링크 토큰과 참여코드를 조회합니다. 관리자만, 모집 중에만 가능합니다.
+     * @param groupId 조회할 그룹 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 초대 링크 토큰, 참여코드, 만료 시각
+     */
+    public ResponseEntity<GroupInviteResponse> getInvitation(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(groupService.getInvitation(groupId, userDetails.getUserId()));
     }
 
     public SseEmitter subscribeStatus(
