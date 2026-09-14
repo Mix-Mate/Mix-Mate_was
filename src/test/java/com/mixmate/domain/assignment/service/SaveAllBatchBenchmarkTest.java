@@ -59,7 +59,7 @@ class SaveAllBatchBenchmarkTest {
     void compareIndividualVsBatchInsert() {
         for (int rows : List.of(100, 500)) {
             // group_assignment는 (group_id, round) 유니크라, 규모별로 매번 새 그룹을 만들어 충돌을 피한다.
-            Group group = groupRepository.save(Group.create("벤치마크용 그룹 " + rows, null, "BENCH" + rows));
+            Group group = groupRepository.save(Group.create("벤치마크용 그룹 " + rows, null, "BENCH" + rows, "tokenBench" + rows));
 
             List<Participant> participants = new ArrayList<>();
             for (int i = 0; i < rows; i++) {
