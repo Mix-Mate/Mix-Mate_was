@@ -4,6 +4,7 @@ import com.mixmate.domain.group.dto.request.GroupCreateRequest;
 import com.mixmate.domain.group.dto.request.GroupUpdateRequest;
 import com.mixmate.domain.group.dto.response.GroupCreateResponse;
 import com.mixmate.domain.group.dto.response.GroupDetailResponse;
+import com.mixmate.domain.group.dto.response.GroupInviteResponse;
 import com.mixmate.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -71,6 +72,42 @@ public interface GroupApi {
     })
     @GetMapping("/{groupId}")
     ResponseEntity<GroupDetailResponse> getGroupDetail(
+            @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
+    );
+
+    @Operation(summary = "초대 링크 조회",
+            description = "관리자가 공유할 초대 링크 토큰(inviteToken)과 참여코드(inviteCode)를 함께 조회합니다. "
+                    + "응답에는 토큰만 담기므로 링크 주소는 프론트에서 조립합니다. "
+                    + "토큰과 참여코드 모두 expiresAt(그룹 생성 후 3일)까지, 그리고 모집중일 때만 유효합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = GroupInviteResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 없음",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
+                            """))),
+            @ApiResponse(responseCode = "403", description = "관리자가 아니거나 이 그룹의 참가자가 아님",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "관리자 아님", value = """
+                                { "code": "NOT_GROUP_ADMIN", "message": "관리자 권한이 필요합니다." }
+                            """),
+                            @ExampleObject(name = "참가자 아님", value = """
+                                { "code": "FORBIDDEN", "message": "그룹에 대한 참가정보가 없습니다." }
+                            """)
+                    })),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "NOT_FOUND", "message": "그룹정보가 없습니다." }
+                            """))),
+            @ApiResponse(responseCode = "409", description = "참가자 모집이 마감된 그룹",
+                    content = @Content(examples = @ExampleObject(value = """
+                                { "code": "INVALID_GROUP_STATUS", "message": "참가자 모집 중에만 초대 링크를 조회할 수 있습니다." }
+                            """)))
+    })
+    @GetMapping("/{groupId}/invitation")
+    ResponseEntity<GroupInviteResponse> getInvitation(
             @Parameter(description = "그룹 식별자", required = true) @PathVariable Long groupId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
