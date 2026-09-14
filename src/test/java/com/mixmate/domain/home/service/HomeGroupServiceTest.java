@@ -62,7 +62,7 @@ class HomeGroupServiceTest {
     @BeforeEach
     void setUp() {
         user = User.builder().userId(1L).userName("곽동욱").email("kdw@example.com").build();
-        group = Group.create("테스트 모임", "설명", "ABC12345");
+        group = Group.create("테스트 모임", "설명", "ABC12345", "tokenHomeAAAAAAAAAAAAA");
         ReflectionTestUtils.setField(group, "createdAt", LocalDateTime.now());
     }
 
@@ -133,13 +133,13 @@ class HomeGroupServiceTest {
     @DisplayName("모집이 마감된 그룹에는 참여할 수 없다")
     void joinGroupFailsWhenNotRecruiting() {
         group.closeRecruiting(); // BEFORE_FIRST_ROUND
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        // 참여코드 검증에서 먼저 걸리므로 사용자 조회까지 가지 않는다
         when(groupRepository.findByInviteCode("ABC12345")).thenReturn(Optional.of(group));
 
         assertThatThrownBy(() -> homeGroupService.joinGroup(joinDto(), 1L))
                 .isInstanceOf(CustomException.class)
                 .extracting(e -> ((CustomException) e).getErrorCode())
-                .isEqualTo(ErrorCode.GROUP_LOCKED);
+                .isEqualTo(ErrorCode.INVALID_GROUP_STATUS);
     }
 
     @Test

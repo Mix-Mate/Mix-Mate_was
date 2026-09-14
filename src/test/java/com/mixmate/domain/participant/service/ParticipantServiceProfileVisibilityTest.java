@@ -49,7 +49,7 @@ class ParticipantServiceProfileVisibilityTest {
 
     @BeforeEach
     void setUp() {
-        group = Group.create("테스트 모임", null, "ABC12345");
+        group = Group.create("테스트 모임", null, "ABC12345", "tokenVisibilityAAAAAAA");
     }
 
     private Participant participant(com.mixmate.domain.participant.enums.Role role, Visibility visibility) {
