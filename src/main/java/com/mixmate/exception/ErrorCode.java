@@ -32,9 +32,11 @@ public enum ErrorCode {
 
     // 그룹 / 참가자
     INVALID_INVITE_CODE(HttpStatus.NOT_FOUND, "유효하지 않은 초대코드입니다."),
+    // 링크 토큰은 128비트라 열거가 불가능하므로, 참여코드와 달리 "없음"과 "만료"를 구분해서 알려준다.
+    INVALID_INVITE_LINK(HttpStatus.NOT_FOUND, "유효하지 않은 초대 링크입니다."),
+    EXPIRED_INVITE_LINK(HttpStatus.GONE, "만료된 초대 링크입니다."),
     ALREADY_JOINED(HttpStatus.CONFLICT, "이미 참여중인 그룹입니다."),
     BANNED_FROM_GROUP(HttpStatus.FORBIDDEN, "차단되어 입장할 수 없습니다."),
-    GROUP_LOCKED(HttpStatus.CONFLICT, "조 편성이 완료되어 인원 변경이 불가능합니다."),
     NOT_GROUP_ADMIN(HttpStatus.FORBIDDEN, "관리자 권한이 필요합니다."),
     INVALID_GROUP_STATUS(HttpStatus.CONFLICT, "현재 진행 상태에서 불가능한 요청입니다."),
     PROFILE_REQUIRED(HttpStatus.BAD_REQUEST, "추가정보를 먼저 입력해야 합니다."),
