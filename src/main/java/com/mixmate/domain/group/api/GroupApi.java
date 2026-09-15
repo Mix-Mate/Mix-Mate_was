@@ -114,7 +114,7 @@ public interface GroupApi {
 
     @Operation(summary = "초대 정보 재발급",
             description = "참여코드를 새로 발급합니다. 기존 참여코드와 그 코드를 실은 초대 링크는 즉시 무효가 되고, "
-                    + "유효 기간(3일)도 재발급 시점부터 다시 시작합니다. "
+                    + "유효 기간(7일)도 재발급 시점부터 다시 시작합니다. "
                     + "링크가 원치 않는 곳에 퍼졌을 때 끊는 용도입니다. 모집중일 때만 가능합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "재발급 성공",
