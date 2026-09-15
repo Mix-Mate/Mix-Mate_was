@@ -6,7 +6,6 @@ import com.mixmate.domain.group.entity.Group;
 import com.mixmate.domain.group.enums.GroupStatus;
 import com.mixmate.domain.group.repository.GroupBanRepository;
 import com.mixmate.domain.group.repository.GroupRepository;
-import com.mixmate.domain.home.dto.request.HomeGroupJoinByLinkReqDto;
 import com.mixmate.domain.home.dto.request.HomeGroupJoinReqDto;
 import com.mixmate.domain.home.dto.request.HomeInviteCodeVerifyReqDto;
 import com.mixmate.domain.home.dto.response.HomeGroupListResDto;
@@ -64,33 +63,7 @@ public class HomeGroupService {
     }
 
     /**
-     * 초대 링크 토큰이 가리키는 그룹이 아직 유효하고 모집중인지 검증합니다.
-     * 링크를 누른 사람에게 그룹 이름을 먼저 보여주는 화면이 이 응답을 씁니다.
-     *
-     * @param inviteToken 초대 링크에 담긴 22자 토큰
-     * @return 검증된 그룹의 최소 정보
-     */
-    @Transactional(readOnly = true)
-    public HomeInviteCodeVerifyResDto verifyInviteToken(String inviteToken) {
-        return HomeInviteCodeVerifyResDto.fromEntity(findValidGroupByInviteToken(inviteToken));
-    }
-
-    /**
-     * 초대 링크로 들어온 사용자를 일반 참가자(PARTICIPANT)로 입장시킵니다.
-     * 그룹은 경로의 토큰이 지목하므로 참여코드는 받지 않습니다.
-     *
-     * @param inviteToken 초대 링크에 담긴 22자 토큰
-     * @param dto 본인 프로필
-     * @param userId 입장하는 사용자 식별자
-     * @return 입장한 그룹의 최소 정보
-     */
-    @Transactional
-    public HomeInviteCodeVerifyResDto joinGroupByToken(String inviteToken, HomeGroupJoinByLinkReqDto dto, Long userId) {
-        return join(findValidGroupByInviteToken(inviteToken), dto.getProfile(), userId);
-    }
-
-    /**
-     * 참여코드로 들어왔든 초대 링크로 들어왔든, 그룹이 정해진 뒤의 입장 처리는 같다.
+     * 그룹이 정해진 뒤의 입장 처리.
      */
     private HomeInviteCodeVerifyResDto join(Group group, ParticipantProfileRequest profile, Long userId) {
         User user = userRepository.findById(userId)
@@ -150,7 +123,7 @@ public class HomeGroupService {
     }
 
     /**
-     * 참여코드는 Group.INVITE_VALID_DAYS일 동안, 그리고 모집중(RECRUITING)일 때만 유효하다.
+     * 참여코드는 발급 시각으로부터 Group.INVITE_VALID_DAYS일 동안, 그리고 모집중일 때만 유효하다.
      * 참여코드는 6자리라 무작위 대입이 가능하므로, 만료된 코드를 없는 코드와 같은 에러로 뭉갠다.
      */
     private Group findValidGroupByInviteCode(String inviteCode) {
@@ -163,26 +136,12 @@ public class HomeGroupService {
         return validateRecruiting(group);
     }
 
-    /**
-     * 초대 링크 토큰의 유효 기간은 참여코드와 같다.
-     * 다만 토큰은 128비트라 열거가 불가능하므로, 없는 링크와 만료된 링크를 구분해서 알려준다.
-     */
-    private Group findValidGroupByInviteToken(String inviteToken) {
-        Group group = groupRepository.findByInviteToken(inviteToken)
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_INVITE_LINK));
-
-        if (isExpired(group)) {
-            throw new CustomException(ErrorCode.EXPIRED_INVITE_LINK);
-        }
-        return validateRecruiting(group);
-    }
-
     private boolean isExpired(Group group) {
         return group.getInviteExpiresAt().isBefore(LocalDateTime.now());
     }
 
     /**
-     * 모집이 마감된 그룹은 참여코드로 들어오든 링크로 들어오든 똑같이 막는다.
+     * 모집이 마감된 그룹은 입장도 검증도 막는다.
      */
     private Group validateRecruiting(Group group) {
         if (group.getStatus() != GroupStatus.RECRUITING) {

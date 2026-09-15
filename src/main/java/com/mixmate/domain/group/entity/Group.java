@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class Group {
 
-    // 참여코드와 초대 링크가 함께 쓰는 유효 기간. HomeGroupService가 이 값으로 만료를 판정한다.
+    // 참여코드 유효 기간. 초대 링크도 이 코드를 싣기 때문에 둘의 수명은 항상 같다.
     public static final long INVITE_VALID_DAYS = 3;
 
     @Id
@@ -38,20 +38,27 @@ public class Group {
     @Column(nullable = false, unique = true, length = 8)
     private String inviteCode;
 
-    @Column(nullable = false, unique = true, length = 22)
-    private String inviteToken;
+    // 참여코드를 발급한 시각. 재발급하면 갱신되므로 만료 기준은 createdAt이 아니라 이 값이다.
+    @Column(nullable = false)
+    private LocalDateTime inviteIssuedAt;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public static Group create(String groupName, String description, String inviteCode, String inviteToken) {
-        return new Group(groupName, description, GroupStatus.RECRUITING, inviteCode, inviteToken);
+    public static Group create(String groupName, String description, String inviteCode) {
+        return new Group(groupName, description, GroupStatus.RECRUITING, inviteCode);
     }
 
     // 참여코드와 초대 링크가 함께 죽는 시각. 호스트 화면이 남은 기간을 보여주는 데 쓴다.
     public LocalDateTime getInviteExpiresAt() {
-        return createdAt.plusDays(INVITE_VALID_DAYS);
+        return inviteIssuedAt.plusDays(INVITE_VALID_DAYS);
+    }
+
+    // 참여코드를 새로 발급한다. 링크가 이 코드를 싣고 있으므로 링크도 함께 갈린다.
+    public void reissueInviteCode(String inviteCode) {
+        this.inviteCode = inviteCode;
+        this.inviteIssuedAt = LocalDateTime.now();
     }
 
     public void updateInfo(String groupName, String description) {
@@ -92,11 +99,11 @@ public class Group {
         this.status = GroupStatus.FINISHED;
     }
 
-    private Group(String groupName, String description, GroupStatus status, String inviteCode, String inviteToken) {
+    private Group(String groupName, String description, GroupStatus status, String inviteCode) {
         this.groupName = groupName;
         this.description = description;
         this.status = status;
         this.inviteCode = inviteCode;
-        this.inviteToken = inviteToken;
+        this.inviteIssuedAt = LocalDateTime.now();
     }
 }

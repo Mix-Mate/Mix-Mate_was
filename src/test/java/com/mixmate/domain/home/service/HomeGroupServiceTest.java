@@ -62,7 +62,7 @@ class HomeGroupServiceTest {
     @BeforeEach
     void setUp() {
         user = User.builder().userId(1L).userName("곽동욱").email("kdw@example.com").build();
-        group = Group.create("테스트 모임", "설명", "ABC12345", "tokenHomeAAAAAAAAAAAAA");
+        group = Group.create("테스트 모임", "설명", "ABC12345");
         ReflectionTestUtils.setField(group, "createdAt", LocalDateTime.now());
     }
 
@@ -97,9 +97,9 @@ class HomeGroupServiceTest {
     }
 
     @Test
-    @DisplayName("생성된 지 3일이 지난 참여코드는 만료된 것으로 취급한다")
+    @DisplayName("발급된 지 3일이 지난 참여코드는 만료된 것으로 취급한다")
     void verifyInviteCodeFailsWhenExpired() {
-        ReflectionTestUtils.setField(group, "createdAt", LocalDateTime.now().minusDays(4));
+        ReflectionTestUtils.setField(group, "inviteIssuedAt", LocalDateTime.now().minusDays(4));
         when(groupRepository.findByInviteCode("ABC12345")).thenReturn(Optional.of(group));
 
         assertThatThrownBy(() -> homeGroupService.verifyInviteCode(

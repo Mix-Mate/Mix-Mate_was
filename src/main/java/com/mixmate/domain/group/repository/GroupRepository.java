@@ -13,8 +13,6 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 
     boolean existsByInviteCode(String inviteCode);
 
-    Optional<Group> findByInviteToken(String inviteToken);
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Group> findWithLockByGroupId(Long groupId);
 }

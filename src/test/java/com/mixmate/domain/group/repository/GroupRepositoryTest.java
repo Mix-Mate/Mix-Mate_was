@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +40,7 @@ class GroupRepositoryTest {
     @Test
     @DisplayName("그룹을 저장하면 PK와 createdAt이 채워지고 상태는 최초 배정 전이다")
     void save() {
-        Group group = Group.create("신촌 모임", "1차 술자리", "ABC12345", "tokenSaveAAAAAAAAAAAAA");
+        Group group = Group.create("신촌 모임", "1차 술자리", "ABC12345");
 
         Group saved = groupRepository.save(group);
         em.flush();
@@ -52,7 +53,7 @@ class GroupRepositoryTest {
     @Test
     @DisplayName("초대 코드로 그룹을 찾을 수 있고, 없는 코드면 비어 있다")
     void findByInviteCode() {
-        groupRepository.save(Group.create("신촌 모임", null, "ABC12345", "tokenFindAAAAAAAAAAAAA"));
+        groupRepository.save(Group.create("신촌 모임", null, "ABC12345"));
         em.flush();
         em.clear();
 
@@ -65,33 +66,33 @@ class GroupRepositoryTest {
     }
 
     @Test
-    @DisplayName("초대 링크 토큰으로 그룹을 찾을 수 있고, 없는 토큰이면 비어 있다")
-    void findByInviteToken() {
-        groupRepository.save(Group.create("신촌 모임", null, "TKN12345", "tokenLookupAAAAAAAAAAA"));
+    @DisplayName("그룹을 저장하면 참여코드 발급 시각이 채워지고 만료는 그로부터 3일 뒤다")
+    void inviteIssuedAtIsSetOnCreate() {
+        Group saved = groupRepository.save(Group.create("신촌 모임", null, "ISS12345"));
         em.flush();
         em.clear();
 
-        Optional<Group> found = groupRepository.findByInviteToken("tokenLookupAAAAAAAAAAA");
-        Optional<Group> notFound = groupRepository.findByInviteToken("tokenMissingAAAAAAAAAA");
+        Group found = groupRepository.findByInviteCode("ISS12345").orElseThrow();
 
-        assertThat(found).isPresent();
-        assertThat(found.get().getGroupName()).isEqualTo("신촌 모임");
-        assertThat(notFound).isEmpty();
+        assertThat(found.getInviteIssuedAt()).isNotNull();
+        assertThat(found.getInviteExpiresAt())
+                .isEqualTo(found.getInviteIssuedAt().plusDays(Group.INVITE_VALID_DAYS));
     }
 
     @Test
-    @DisplayName("초대 링크 토큰 22자가 잘리지 않고 그대로 저장된다")
-    void inviteTokenNotTruncated() {
-        String token = "abcdefghij0123456789AB";   // 컬럼 길이와 같은 22자
+    @DisplayName("참여코드를 재발급하면 코드와 발급 시각이 함께 갱신되고 예전 코드로는 찾을 수 없다")
+    void reissueInviteCode() {
+        Group saved = groupRepository.save(Group.create("신촌 모임", null, "OLD12345"));
+        em.flush();
+        LocalDateTime issuedBefore = saved.getInviteIssuedAt();
 
-        groupRepository.save(Group.create("신촌 모임", null, "LEN12345", token));
+        saved.reissueInviteCode("NEW12345");
         em.flush();
         em.clear();
 
-        assertThat(groupRepository.findByInviteToken(token))
-                .get()
-                .extracting(Group::getInviteToken)
-                .isEqualTo(token);
+        assertThat(groupRepository.findByInviteCode("OLD12345")).isEmpty();
+        Group found = groupRepository.findByInviteCode("NEW12345").orElseThrow();
+        assertThat(found.getInviteIssuedAt()).isAfterOrEqualTo(issuedBefore);
     }
 
     @Test
@@ -105,7 +106,7 @@ class GroupRepositoryTest {
     @Test
     @DisplayName("status는 ordinal이 아니라 문자열로 저장된다")
     void statusStoredAsString() {
-        groupRepository.save(Group.create("신촌 모임", null, "STR12345", "tokenStatusAAAAAAAAAAA"));
+        groupRepository.save(Group.create("신촌 모임", null, "STR12345"));
         em.flush();
 
         Object status = em.createNativeQuery(

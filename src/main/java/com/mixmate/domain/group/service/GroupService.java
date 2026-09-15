@@ -37,7 +37,6 @@ public class GroupService {
     private final ParticipantRepository participantRepository;
     private final UserRepository userRepository;
     private final InviteCodeGenerator inviteCodeGenerator;
-    private final InviteTokenGenerator inviteTokenGenerator;
     private final GroupMembership groupMembership;
     private final GroupStatusNotifier groupStatusNotifier;
     private final ApplicationEventPublisher eventPublisher;
@@ -48,28 +47,15 @@ public class GroupService {
 
     /**
      * 새 그룹을 생성하고, 생성자를 관리자(HOST) 겸 첫 참가자로 등록합니다.
-     * 참여코드는 중복되지 않을 때까지 최대 MAX_LOOP_COUNT번 재생성을 시도하고,
-     * 초대 링크 토큰은 128비트 난수라 중복 확인 없이 한 번만 생성합니다.
+     * 참여코드는 중복되지 않을 때까지 최대 MAX_LOOP_COUNT번 재생성을 시도합니다.
      */
     @Transactional
     public GroupCreateResponse createGroup(GroupCreateRequest dto, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        String inviteCode = null;
-        for (int i = 0; i < MAX_LOOP_COUNT; i++) {
-            String candidate = inviteCodeGenerator.generate();
-            if (!groupRepository.existsByInviteCode(candidate)) {
-                inviteCode = candidate;
-                break;
-            }
-        }
-        if (inviteCode == null) {
-            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
-
         Group group = groupRepository.save(
-                Group.create(dto.groupName(), dto.description(), inviteCode, inviteTokenGenerator.generate()));
+                Group.create(dto.groupName(), dto.description(), generateUniqueInviteCode()));
         Participant host = Participant.createHost(user, group, dto.profile().toEntity());
         participantRepository.save(host);
         return new GroupCreateResponse(group.getGroupId(), group.getGroupName(), group.getInviteCode());
@@ -108,16 +94,47 @@ public class GroupService {
     }
 
     /**
-     * 관리자가 공유할 초대 링크 토큰과 참여코드를 함께 조회합니다.
-     * 링크는 모집중일 때만 유효하므로, 마감된 그룹에서는 아예 내려주지 않습니다.
+     * 관리자가 공유할 참여코드와 만료 시각을 조회합니다.
+     * 초대 링크도 이 참여코드를 싣기 때문에 링크와 코드의 수명은 항상 같습니다.
      */
     @Transactional(readOnly = true)
     public GroupInviteResponse getInvitation(Long groupId, Long userId) {
+        return GroupInviteResponse.from(getRecruitingGroupAsHost(groupId, userId));
+    }
+
+    /**
+     * 관리자가 참여코드를 새로 발급합니다. 기존 코드와 그 코드를 실은 링크는 즉시 무효가 되고,
+     * 유효 기간도 발급 시점부터 다시 시작합니다.
+     */
+    @Transactional
+    public GroupInviteResponse reissueInvitation(Long groupId, Long userId) {
+        Group group = getRecruitingGroupAsHost(groupId, userId);
+        group.reissueInviteCode(generateUniqueInviteCode());
+        return GroupInviteResponse.from(group);
+    }
+
+    /**
+     * 초대 관련 API는 모두 관리자 전용이고 모집 중에만 열려 있다.
+     */
+    private Group getRecruitingGroupAsHost(Long groupId, Long userId) {
         Group group = groupMembership.getHost(groupId, userId).getGroup();
         if (group.getStatus() != GroupStatus.RECRUITING) {
-            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "참가자 모집 중에만 초대 링크를 조회할 수 있습니다.");
+            throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "참가자 모집 중에만 초대 코드를 관리할 수 있습니다.");
         }
-        return GroupInviteResponse.from(group);
+        return group;
+    }
+
+    /**
+     * 참여코드는 6자리라 실제로 충돌할 수 있으므로, 중복되지 않을 때까지 최대 MAX_LOOP_COUNT번 재생성한다.
+     */
+    private String generateUniqueInviteCode() {
+        for (int i = 0; i < MAX_LOOP_COUNT; i++) {
+            String candidate = inviteCodeGenerator.generate();
+            if (!groupRepository.existsByInviteCode(candidate)) {
+                return candidate;
+            }
+        }
+        throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
 
     @Transactional(readOnly = true)
