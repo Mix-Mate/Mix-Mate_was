@@ -19,9 +19,14 @@ public record ParticipantProfileResponse(
         Mbti mbti,
         Integer age,
         String instaId,
-        String bio
+        String bio,
+        long mvpCount
 ) {
-    public static ParticipantProfileResponse from(Participant participant) {
+    /**
+     * @param mvpCount 이 참가자 계정이 지금까지 참여한 모든 모임을 통틀어 MVP로 뽑힌 누적 횟수.
+     *                 로그인 계정이 없는(관리자 대리 등록) 참가자는 집계할 계정 자체가 없어 항상 0이다.
+     */
+    public static ParticipantProfileResponse from(Participant participant, long mvpCount) {
         ParticipantProfile profile = participant.getProfile();
         return ParticipantProfileResponse.builder()
                 .displayName(profile.getDisplayName())
@@ -34,6 +39,7 @@ public record ParticipantProfileResponse(
                 .age(profile.getAge())
                 .instaId(profile.getInstaId())
                 .bio(profile.getBio())
+                .mvpCount(mvpCount)
                 .build();
     }
 }

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -123,5 +124,41 @@ class ParticipantServiceProfileVisibilityTest {
         ParticipantProfileResponse result = participantService.getParticipantProfile(1L, target.getParticipantId(), 1L);
 
         assertThat(result).isNotNull();
+    }
+
+    @Test
+    @DisplayName("프로필 조회 응답에 이 참가자 계정의 누적 MVP 횟수가 담긴다")
+    void getParticipantProfileIncludesMvpCount() {
+        Participant viewer = participant(com.mixmate.domain.participant.enums.Role.PARTICIPANT, Visibility.PUBLIC);
+
+        when(groupMembership.getMember(1L, 1L)).thenReturn(viewer);
+        when(participantRepository.findByParticipantIdAndGroup(viewer.getParticipantId(), group))
+                .thenReturn(Optional.of(viewer));
+        when(participantRepository.countByUserAndIsMvpTrue(viewer.getUser())).thenReturn(5L);
+
+        ParticipantProfileResponse result = participantService.getParticipantProfile(1L, viewer.getParticipantId(), 1L);
+
+        assertThat(result.mvpCount()).isEqualTo(5L);
+    }
+
+    @Test
+    @DisplayName("로그인 계정이 없는 대리 등록 참가자는 MVP 횟수가 항상 0이고 집계 쿼리 자체를 안 태운다")
+    void getParticipantProfileReturnsZeroMvpCountForManualParticipant() {
+        Participant host = participant(com.mixmate.domain.participant.enums.Role.HOST, Visibility.PUBLIC);
+        ParticipantProfile profile = ParticipantProfile.builder()
+                .displayName("대리등록").studentId("2024002").position(Position.MEMBER)
+                .major("경영학과").isNew(false).grade(Grade.SECOND).gender(Gender.FEMALE)
+                .mbti(Mbti.ISTJ).visibility(Visibility.PUBLIC).build();
+        Participant manual = Participant.addByHost(group, profile);
+        ReflectionTestUtils.setField(manual, "participantId", nextId++);
+
+        when(groupMembership.getMember(1L, 1L)).thenReturn(host);
+        when(participantRepository.findByParticipantIdAndGroup(manual.getParticipantId(), group))
+                .thenReturn(Optional.of(manual));
+
+        ParticipantProfileResponse result = participantService.getParticipantProfile(1L, manual.getParticipantId(), 1L);
+
+        assertThat(result.mvpCount()).isEqualTo(0L);
+        Mockito.verify(participantRepository, Mockito.never()).countByUserAndIsMvpTrue(Mockito.any());
     }
 }

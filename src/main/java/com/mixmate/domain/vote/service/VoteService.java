@@ -225,17 +225,11 @@ public class VoteService {
         if (!group.getStatus().isVoteFinished())
             throw new CustomException(ErrorCode.INVALID_GROUP_STATUS, "투표가 아직 종료되지 않았습니다.");
 
-        Map<Long, List<MvpVote>> votesByTargetId = mvpVoteRepository.findByTarget_Group(group).stream()
-                .collect(Collectors.groupingBy(v -> v.getTarget().getParticipantId()));
-        int maxVoteCount = votesByTargetId.values().stream().mapToInt(List::size).max().orElse(0);
-
         GroupAssignment firstRoundAssignment = groupAssignmentRepository.findByGroupAndRound(group, Round.FIRST_ROUND)
                 .orElse(null);
 
-        List<MvpWinnerResDto> mvpWinners = votesByTargetId.values().stream()
-                .filter(votes -> maxVoteCount > 0 && votes.size() == maxVoteCount)
-                .map(votes -> {
-                    Participant target = votes.get(0).getTarget();
+        List<MvpWinnerResDto> mvpWinners = findMvpWinners(group).stream()
+                .map(target -> {
                     Integer teamNumber = (firstRoundAssignment == null) ? null
                             : teamAssignmentMemberRepository.findByAssignmentAndParticipant(firstRoundAssignment, target)
                                     .map(TeamAssignmentMember::getTeamNumber)
@@ -256,7 +250,26 @@ public class VoteService {
     }
 
     /**
+     * 이 모임에서 MVP로 뽑힌 참가자 목록을 구한다. "가장 많이 득표한 사람(들)"이 MVP이므로,
+     * 개별 득표수가 아니라 모임 단위로 최댓값을 구해서 그 최댓값을 받은 참가자만 골라낸다
+     * (동점이면 여러 명이 공동 MVP). 투표가 하나도 없으면 빈 목록을 반환한다.
+     */
+    private List<Participant> findMvpWinners(Group group) {
+        Map<Long, List<MvpVote>> votesByTargetId = mvpVoteRepository.findByTarget_Group(group).stream()
+                .collect(Collectors.groupingBy(v -> v.getTarget().getParticipantId()));
+        int maxVoteCount = votesByTargetId.values().stream().mapToInt(List::size).max().orElse(0);
+        if (maxVoteCount == 0) return List.of();
+
+        return votesByTargetId.values().stream()
+                .filter(votes -> votes.size() == maxVoteCount)
+                .map(votes -> votes.get(0).getTarget())
+                .toList();
+    }
+
+    /**
      * 관리자가 투표를 강제 종료한다. 미투표자는 모두 2차 불참으로 자동 처리되고, 그룹은 조 편성 대기 상태로 넘어간다.
+     * 지금 코드에서 투표가 종료되는 유일한 경로라, MVP로 뽑힌 참가자 표시도 여기서 딱 한 번 확정해서 남긴다.
+     * (User가 아니라 Participant에 남기는 이유는 클래스 상단 isMvp 필드 주석 참고)
      */
     @Transactional
     public void finishVote(Long groupId, Long userId) {
@@ -275,6 +288,8 @@ public class VoteService {
                 .map(p -> Round2ParticipationVote.create(p, VoteChoice.NOT_PARTICIPATE))
                 .toList();
         round2VoteRepository.saveAll(autoVotes);
+
+        findMvpWinners(group).forEach(Participant::markAsMvp);
 
         group.finishVoting();
         eventPublisher.publishEvent(new GroupStatusChangedEvent(groupId, group.getStatus()));

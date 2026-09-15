@@ -17,6 +17,7 @@ import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
 import com.mixmate.domain.auth.entity.AuthProvider;
 import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.auth.repository.UserRepository;
+import com.mixmate.domain.participant.repository.ParticipantRepository;
 import com.mixmate.exception.CustomException;
 import com.mixmate.exception.ErrorCode;
 import com.mixmate.redis.RedisService;
@@ -42,6 +43,7 @@ public class AuthService {
     private static final String PW_RESET_VERIFIED_PREFIX = "PW_RESET_VERIFIED:";
 
     private final UserRepository userRepository;
+    private final ParticipantRepository participantRepository;
     private final RedisService redisService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -336,6 +338,7 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        return MyInfoResDto.fromEntity(user);
+        long mvpCount = participantRepository.countByUserAndIsMvpTrue(user);
+        return MyInfoResDto.fromEntity(user, mvpCount);
     }
 }

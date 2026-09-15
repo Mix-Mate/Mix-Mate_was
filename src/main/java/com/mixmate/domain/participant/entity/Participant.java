@@ -51,6 +51,14 @@ public class Participant {
     @Column(nullable = false)
     private LocalDateTime profileUpdatedAt;
 
+    /**
+     * 이 모임(1차)에서 MVP로 뽑혔는지(동점자 포함). 투표가 최종 마감되는 시점(VoteService.finishVote)에
+     * 딱 한 번만 계산돼서 찍힌다. 계정 전체의 "총 MVP 횟수"는 이 값을 User 기준으로 COUNT해서 구한다 —
+     * User에 별도 카운터를 두지 않는 이유는, 그러면 증가 로직을 빼먹었을 때 실제 데이터와 어긋날 수 있어서다.
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean isMvp = false;
+
     public static Participant createHost(User user, Group group, ParticipantProfile profile) {
         return new Participant(user, group, profile, Role.HOST);
     }
@@ -82,5 +90,9 @@ public class Participant {
 
     public void leaveSecondRound() {
         this.roundParticipation = RoundParticipation.FIRST_ONLY;
+    }
+
+    public void markAsMvp() {
+        this.isMvp = true;
     }
 }

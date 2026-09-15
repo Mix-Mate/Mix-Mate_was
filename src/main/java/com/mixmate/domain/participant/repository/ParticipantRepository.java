@@ -55,4 +55,11 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
     @Modifying(clearAutomatically = true)
     @Query("DELETE FROM Participant p WHERE p.group = :group")
     void deleteAllByGroup(@Param("group") Group group);
+
+    /**
+     * 이 계정이 지금까지 참여한 모든 모임을 통틀어 MVP로 뽑힌 횟수. Participant는 모임마다 새로
+     * 생기는 행이라, isMvp가 true인 행 개수를 세는 것만으로 계정 전체 누적 횟수가 그대로 나온다.
+     * User에 별도 카운터를 두지 않고 그때그때 파생해서 구하는 이유는 Participant.isMvp 필드 주석 참고.
+     */
+    long countByUserAndIsMvpTrue(User user);
 }
