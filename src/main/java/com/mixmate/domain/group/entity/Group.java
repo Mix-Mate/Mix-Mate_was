@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class Group {
 
     // 참여코드 유효 기간. 초대 링크도 이 코드를 싣기 때문에 둘의 수명은 항상 같다.
-    public static final long INVITE_VALID_DAYS = 3;
+    public static final long INVITE_VALID_DAYS = 7;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -37,7 +37,7 @@ public class HomeGroupService {
     private final UserRepository userRepository;
 
     /**
-     * 참여코드가 실제로 존재하고, 만료(3일)되지 않았으며, 아직 모집중인 그룹인지 검증합니다.
+     * 참여코드가 실제로 존재하고, 만료(7일)되지 않았으며, 아직 모집중인 그룹인지 검증합니다.
      * 프로필 입력 화면으로 넘어가기 전, 코드만 먼저 빠르게 확인할 때 사용합니다.
      *
      * @param dto 검증할 참여코드

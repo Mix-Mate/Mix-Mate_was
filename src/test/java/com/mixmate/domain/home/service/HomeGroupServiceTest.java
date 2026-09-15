@@ -97,9 +97,9 @@ class HomeGroupServiceTest {
     }
 
     @Test
-    @DisplayName("발급된 지 3일이 지난 참여코드는 만료된 것으로 취급한다")
+    @DisplayName("발급된 지 7일이 지난 참여코드는 만료된 것으로 취급한다")
     void verifyInviteCodeFailsWhenExpired() {
-        ReflectionTestUtils.setField(group, "inviteIssuedAt", LocalDateTime.now().minusDays(4));
+        ReflectionTestUtils.setField(group, "inviteIssuedAt", LocalDateTime.now().minusDays(Group.INVITE_VALID_DAYS + 1));
         when(groupRepository.findByInviteCode("ABC12345")).thenReturn(Optional.of(group));
 
         assertThatThrownBy(() -> homeGroupService.verifyInviteCode(

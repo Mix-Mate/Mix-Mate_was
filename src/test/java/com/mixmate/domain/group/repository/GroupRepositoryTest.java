@@ -66,7 +66,7 @@ class GroupRepositoryTest {
     }
 
     @Test
-    @DisplayName("그룹을 저장하면 참여코드 발급 시각이 채워지고 만료는 그로부터 3일 뒤다")
+    @DisplayName("그룹을 저장하면 참여코드 발급 시각이 채워지고 만료는 그로부터 INVITE_VALID_DAYS일 뒤다")
     void inviteIssuedAtIsSetOnCreate() {
         Group saved = groupRepository.save(Group.create("신촌 모임", null, "ISS12345"));
         em.flush();
