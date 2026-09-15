@@ -1,6 +1,5 @@
 package com.mixmate.domain.home.api;
 
-import com.mixmate.domain.home.dto.request.HomeGroupJoinByLinkReqDto;
 import com.mixmate.domain.home.dto.request.HomeGroupJoinReqDto;
 import com.mixmate.domain.home.dto.request.HomeInviteCodeVerifyReqDto;
 import com.mixmate.domain.home.dto.response.HomeGroupListResDto;
@@ -20,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -94,79 +92,6 @@ public interface HomeGroupApi {
     @PostMapping("/invitations/join")
     ResponseEntity<HomeInviteCodeVerifyResDto> joinGroup(
             @Valid @RequestBody HomeGroupJoinReqDto dto,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
-    );
-
-    @Operation(summary = "초대 링크 검증",
-            description = "초대 링크에 담긴 토큰이 가리키는 그룹이 아직 유효하고 모집중인지 확인합니다. "
-                    + "링크를 누른 직후, 프로필 입력 화면으로 넘어가기 전에 그룹 이름을 보여줄 때 사용합니다. "
-                    + "토큰은 참여코드와 같은 그룹을 가리키지만 유효 기간만 같을 뿐 서로 다른 값입니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "검증 성공",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = HomeInviteCodeVerifyResDto.class))),
-            @ApiResponse(responseCode = "401", description = "인증 없음",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
-                            """))),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 초대 링크",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_INVITE_LINK", "message": "유효하지 않은 초대 링크입니다." }
-                            """))),
-            @ApiResponse(responseCode = "409", description = "참가자 모집이 마감된 그룹",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "참가자 모집이 마감된 그룹입니다." }
-                            """))),
-            @ApiResponse(responseCode = "410", description = "만료된 초대 링크 (그룹 생성 후 3일 경과)",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "EXPIRED_INVITE_LINK", "message": "만료된 초대 링크입니다." }
-                            """)))
-    })
-    @GetMapping("/invitations/{token}")
-    ResponseEntity<HomeInviteCodeVerifyResDto> verifyInviteToken(
-            @Parameter(description = "초대 링크에 담긴 22자 토큰", required = true) @PathVariable String token
-    );
-
-    @Operation(summary = "초대 링크로 그룹 입장",
-            description = "초대 링크로 그룹에 참가자로 입장합니다. 그룹은 경로의 토큰이 지목하므로 참여코드는 보내지 않습니다. "
-                    + "참가자 모집이 마감된 그룹이거나 이미 참여중인 그룹이면 실패합니다. "
-                    + "관리자에게 삭제된 사용자는 차단되므로, 해제되기 전까지는 같은 링크로도 입장할 수 없습니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "입장 성공",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = HomeInviteCodeVerifyResDto.class))),
-            @ApiResponse(responseCode = "400", description = "필수값 누락, enum 값 불일치 등 입력값 오류",
-                    content = @Content),
-            @ApiResponse(responseCode = "401", description = "인증 없음",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "UNAUTHORIZED", "message": "토큰이 없거나 만료되었습니다." }
-                            """))),
-            @ApiResponse(responseCode = "403", description = "관리자에게 삭제되어 차단된 사용자",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "BANNED_FROM_GROUP", "message": "차단되어 입장할 수 없습니다." }
-                            """))),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 초대 링크",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "INVALID_INVITE_LINK", "message": "유효하지 않은 초대 링크입니다." }
-                            """))),
-            @ApiResponse(responseCode = "409", description = "이미 참여중이거나, 참가자 모집이 마감되어 더 이상 입장 불가",
-                    content = @Content(examples = {
-                            @ExampleObject(name = "이미 참여중", value = """
-                                { "code": "ALREADY_JOINED", "message": "이미 참여중인 그룹입니다." }
-                            """),
-                            @ExampleObject(name = "모집 마감", value = """
-                                { "code": "INVALID_GROUP_STATUS", "message": "참가자 모집이 마감된 그룹입니다." }
-                            """)
-                    })),
-            @ApiResponse(responseCode = "410", description = "만료된 초대 링크 (그룹 생성 후 3일 경과)",
-                    content = @Content(examples = @ExampleObject(value = """
-                                { "code": "EXPIRED_INVITE_LINK", "message": "만료된 초대 링크입니다." }
-                            """)))
-    })
-    @PostMapping("/invitations/{token}/join")
-    ResponseEntity<HomeInviteCodeVerifyResDto> joinGroupByToken(
-            @Parameter(description = "초대 링크에 담긴 22자 토큰", required = true) @PathVariable String token,
-            @Valid @RequestBody HomeGroupJoinByLinkReqDto dto,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails
     );
 

@@ -1,7 +1,6 @@
 package com.mixmate.domain.home.controller;
 
 import com.mixmate.domain.home.api.HomeGroupApi;
-import com.mixmate.domain.home.dto.request.HomeGroupJoinByLinkReqDto;
 import com.mixmate.domain.home.dto.request.HomeGroupJoinReqDto;
 import com.mixmate.domain.home.dto.request.HomeInviteCodeVerifyReqDto;
 import com.mixmate.domain.home.dto.response.HomeGroupListResDto;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,32 +49,6 @@ public class HomeGroupController implements HomeGroupApi {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(homeGroupService.joinGroup(dto, userDetails.getUserId()));
-    }
-
-    /**
-     * 초대 링크가 가리키는 그룹이 아직 유효하고 모집중인지 확인합니다.
-     * @param token 초대 링크에 담긴 22자 토큰
-     * @return 검증된 그룹의 최소 정보
-     */
-    public ResponseEntity<HomeInviteCodeVerifyResDto> verifyInviteToken(
-            @PathVariable String token
-    ) {
-        return ResponseEntity.ok(homeGroupService.verifyInviteToken(token));
-    }
-
-    /**
-     * 초대 링크로 그룹에 참가자로 입장합니다. 참여코드 없이 프로필만 보냅니다.
-     * @param token 초대 링크에 담긴 22자 토큰
-     * @param dto 본인 프로필
-     * @param userDetails 로그인한 사용자의 인증 정보
-     * @return 입장한 그룹의 최소 정보
-     */
-    public ResponseEntity<HomeInviteCodeVerifyResDto> joinGroupByToken(
-            @PathVariable String token,
-            @Valid @RequestBody HomeGroupJoinByLinkReqDto dto,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        return ResponseEntity.ok(homeGroupService.joinGroupByToken(token, dto, userDetails.getUserId()));
     }
 
     /**

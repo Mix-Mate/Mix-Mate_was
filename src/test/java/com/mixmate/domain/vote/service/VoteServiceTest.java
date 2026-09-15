@@ -75,7 +75,7 @@ class VoteServiceTest {
 
     @BeforeEach
     void setUp() {
-        group = Group.create("테스트 모임", null, "TEST1234", "tokenVoteAAAAAAAAAAAAA");
+        group = Group.create("테스트 모임", null, "TEST1234");
         group.startVoting();
     }
 

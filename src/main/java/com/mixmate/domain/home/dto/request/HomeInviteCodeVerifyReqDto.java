@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class HomeInviteCodeVerifyReqDto {
 
-    @Schema(description = "그룹 생성 시 발급된 6자리 참여코드. 생성일로부터 3일간 유효", example = "BZRWXT")
+    @Schema(description = "그룹 생성 시 발급된 6자리 참여코드. 발급일로부터 7일간 유효", example = "BZRWXT")
     @NotBlank(message = "참여코드를 입력해주세요.")
     private final String inviteCode;
 }

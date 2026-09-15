@@ -84,16 +84,29 @@ public class GroupController implements GroupApi {
     }
 
     /**
-     * 관리자가 공유할 초대 링크 토큰과 참여코드를 조회합니다. 관리자만, 모집 중에만 가능합니다.
+     * 관리자가 공유할 참여코드와 만료 시각을 조회합니다. 관리자만, 모집 중에만 가능합니다.
      * @param groupId 조회할 그룹 식별자
      * @param userDetails 로그인한 사용자의 인증 정보
-     * @return 초대 링크 토큰, 참여코드, 만료 시각
+     * @return 참여코드와 만료 시각
      */
     public ResponseEntity<GroupInviteResponse> getInvitation(
             @PathVariable Long groupId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(groupService.getInvitation(groupId, userDetails.getUserId()));
+    }
+
+    /**
+     * 관리자가 참여코드를 새로 발급합니다. 기존 코드와 링크는 즉시 무효가 됩니다.
+     * @param groupId 재발급할 그룹 식별자
+     * @param userDetails 로그인한 사용자의 인증 정보
+     * @return 새 참여코드와 갱신된 만료 시각
+     */
+    public ResponseEntity<GroupInviteResponse> reissueInvitation(
+            @PathVariable Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(groupService.reissueInvitation(groupId, userDetails.getUserId()));
     }
 
     public SseEmitter subscribeStatus(
