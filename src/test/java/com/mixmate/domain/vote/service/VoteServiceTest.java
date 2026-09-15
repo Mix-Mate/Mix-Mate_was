@@ -420,4 +420,50 @@ class VoteServiceTest {
                 .extracting(e -> ((CustomException) e).getErrorCode())
                 .isEqualTo(ErrorCode.VOTE_NOT_IN_PROGRESS);
     }
+
+    @Test
+    @DisplayName("투표 종료 시 MVP 최다 득표자의 Participant가 isMvp로 표시된다")
+    void finishVoteMarksWinnerAsMvp() {
+        Participant host = participant(true);
+        Participant winner = participant(true);
+        Participant loser = participant(true);
+        com.mixmate.domain.vote.entity.MvpVote voteForWinner1 =
+                com.mixmate.domain.vote.entity.MvpVote.create(host, winner);
+        com.mixmate.domain.vote.entity.MvpVote voteForWinner2 =
+                com.mixmate.domain.vote.entity.MvpVote.create(loser, winner);
+        com.mixmate.domain.vote.entity.MvpVote voteForLoser =
+                com.mixmate.domain.vote.entity.MvpVote.create(winner, loser);
+
+        when(groupMembership.getHost(1L, 1L)).thenReturn(host);
+        when(participantRepository.findByGroup(group)).thenReturn(List.of(host, winner, loser));
+        when(round2VoteRepository.findByVoter_Group(group)).thenReturn(List.of());
+        when(mvpVoteRepository.findByTarget_Group(group))
+                .thenReturn(List.of(voteForWinner1, voteForWinner2, voteForLoser));
+
+        voteService.finishVote(1L, 1L);
+
+        assertThat(winner.isMvp()).isTrue();
+        assertThat(loser.isMvp()).isFalse();
+    }
+
+    @Test
+    @DisplayName("로그인 계정이 없는 대리 등록 참가자도 MVP로 뽑히면 Participant에는 정상적으로 표시된다")
+    void finishVoteMarksManualParticipantAsMvpToo() {
+        Participant host = participant(true);
+        Participant manualWinner = participant(false); // addByHost: user == null
+        com.mixmate.domain.vote.entity.MvpVote vote =
+                com.mixmate.domain.vote.entity.MvpVote.create(host, manualWinner);
+
+        when(groupMembership.getHost(1L, 1L)).thenReturn(host);
+        when(participantRepository.findByGroup(group)).thenReturn(List.of(host, manualWinner));
+        when(round2VoteRepository.findByVoter_Group(group)).thenReturn(List.of());
+        when(mvpVoteRepository.findByTarget_Group(group)).thenReturn(List.of(vote));
+
+        voteService.finishVote(1L, 1L);
+
+        // User가 없어도 isMvp는 Participant 자체에 남는 값이라 문제없이 표시된다
+        // (계정 전체 집계에는 안 잡히지만, 이 모임 안에서 MVP였다는 사실 자체는 정상적으로 기록됨)
+        assertThat(manualWinner.isMvp()).isTrue();
+        assertThat(group.getStatus()).isEqualTo(com.mixmate.domain.group.enums.GroupStatus.VOTE_CLOSED);
+    }
 }
