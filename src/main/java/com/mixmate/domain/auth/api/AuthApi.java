@@ -266,7 +266,8 @@ public interface AuthApi {
 
     @Operation(summary = "마이페이지 내 정보 조회 (로그인 필요)",
             description = "로그인한 사용자 본인의 현재 계정 정보를 조회합니다. userName처럼 로그인 이후 바뀔 수 있는 값도 "
-                    + "항상 최신 상태로 내려주므로, 로그인 응답을 캐싱해서 쓰는 대신 마이페이지 진입 시 이 API로 다시 조회하는 것을 권장합니다.")
+                    + "항상 최신 상태로 내려주므로, 로그인 응답을 캐싱해서 쓰는 대신 마이페이지 진입 시 이 API로 다시 조회하는 것을 권장합니다. "
+                    + "mvpCount는 지금까지 참여한 모든 모임을 통틀어 MVP로 뽑힌 누적 횟수입니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,

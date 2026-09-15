@@ -13,6 +13,7 @@ import com.mixmate.domain.auth.dto.response.TokenReissueResDto;
 import com.mixmate.domain.auth.entity.AuthProvider;
 import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.auth.repository.UserRepository;
+import com.mixmate.domain.participant.repository.ParticipantRepository;
 import com.mixmate.exception.CustomException;
 import com.mixmate.exception.ErrorCode;
 import com.mixmate.redis.RedisService;
@@ -45,6 +46,8 @@ class AuthServiceTest {
 
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private ParticipantRepository participantRepository;
     @Mock
     private RedisService redisService;
     @Mock
@@ -334,6 +337,7 @@ class AuthServiceTest {
     @DisplayName("로그인한 사용자의 현재 정보를 조회한다")
     void getMyInfoSucceeds() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(activeUser));
+        when(participantRepository.countByUserAndIsMvpTrue(activeUser)).thenReturn(3L);
 
         MyInfoResDto result = authService.getMyInfo(1L);
 
@@ -341,6 +345,7 @@ class AuthServiceTest {
         assertThat(result.getEmail()).isEqualTo("kdh@example.com");
         assertThat(result.getUserName()).isEqualTo("김대현");
         assertThat(result.getProvider()).isEqualTo("LOCAL");
+        assertThat(result.getMvpCount()).isEqualTo(3L);
     }
 
     // ---------- kakaoLogin ----------
