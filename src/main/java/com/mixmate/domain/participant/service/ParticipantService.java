@@ -92,7 +92,12 @@ public class ParticipantService {
             throw new CustomException(ErrorCode.FORBIDDEN, "비공개 프로필입니다.");
         }
 
-        return ParticipantProfileResponse.from(participant);
+        // 대리 등록 참가자(로그인 계정 없음)는 집계할 계정 자체가 없어 0으로 내려간다.
+        long mvpCount = participant.getUser() == null
+                ? 0L
+                : participantRepository.countByUserAndIsMvpTrue(participant.getUser());
+
+        return ParticipantProfileResponse.from(participant, mvpCount);
     }
 
     /**
