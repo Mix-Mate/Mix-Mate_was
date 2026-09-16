@@ -1,5 +1,6 @@
 package com.mixmate.domain.auth.service;
 
+import com.mixmate.domain.auth.entity.User;
 import com.mixmate.domain.auth.repository.UserRepository;
 import com.mixmate.exception.CustomException;
 import com.mixmate.exception.ErrorCode;
@@ -38,12 +39,19 @@ public class PasswordResetEmailService {
     /**
      * 가입된 이메일로 6자리 인증 번호를 발송하고, 해당 번호를 Redis에 5분간 저장합니다.
      *
+     * 소셜 로그인 계정은 애초에 비밀번호가 없어 여기서도 막는다 — 이 체크가 없으면 실제 재설정은
+     * 마지막 {@link AuthService#resetPassword}에서 막히더라도, 그 앞에 인증 메일은 이미 나가버리고
+     * 사용자는 인증까지 다 마친 뒤에야 실패를 보게 된다.
+     *
      * @param email 인증 번호를 수신할 사용자의 이메일 주소
-     * @throws CustomException 가입되지 않은 이메일인 경우 (USER_NOT_FOUND)
+     * @throws CustomException 가입되지 않은 이메일인 경우 (USER_NOT_FOUND), 소셜 로그인 계정인 경우 (NOT_LOCAL_ACCOUNT)
      */
     public void sendVerificationCode(String email) {
-        if (!userRepository.existsByEmail(email)) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        User user = userRepository.findByEmailAndDeletedAtIsNull(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if (!user.isLocal()) {
+            throw new CustomException(ErrorCode.NOT_LOCAL_ACCOUNT);
         }
 
         String code = generateCode();
