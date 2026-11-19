@@ -1,0 +1,12 @@
+측정 일시: 2026-11-19 14:42 KST 시작
+OS: macOS 27.0.1 (arm64)
+하드웨어: Mac16,12, 논리 코어 10개, 메모리 16GB
+JDK(실행): openjdk version "21.0.9" 2025-10-21 LTS
+k6: k6 v2.4.0 (commit/devel, go1.27.4, darwin/arm64)
+MySQL: 9.4.0 (Homebrew, 운영은 mysql:8.0)
+Redis: v=8.10.0
+앱: Spring Boot 3.5.3, java -Xms512m -Xmx1g -jar (bootJar)
+Tomcat 워커 스레드: 기본값(200), Hikari connectionTimeout: 기본값(30s)
+부하 발생기·앱·MySQL·Redis: 같은 머신(localhost)
+전원: 배터리 구동 (저전력 모드 꺼짐), 맥북 덮개 열림, caffeinate -i 로 유휴 잠자기 방지
+측정 순서: OSIV 12케이스(2회) → 용량 테스트 6시나리오 → OSIV 시계열 4케이스
