@@ -6,10 +6,12 @@
 
 ## 토큰
 
-| 토큰 | 만료 | 저장 | 비고 |
+| 토큰 | 만료 | 서버 저장 | 비고 |
 | --- | --- | --- | --- |
-| Access | **1시간** | 저장하지 않음 | HS256 JWT, subject는 이메일. 로그아웃·탈퇴 시에만 블랙리스트로 폐기 |
+| Access | **1시간** | 없음 (서명·만료 검증만으로 인증) | HS256 JWT, subject는 이메일. 로그아웃·탈퇴한 토큰만 예외로 Redis `BLACKLIST:{token}`에 올려 폐기 |
 | Refresh | **7일** | Redis `REFTOKEN:{userId}` | 사용자당 1개. 다시 로그인하면 값이 덮어써져 이전 기기의 refresh는 무효 |
+
+두 토큰 모두 클라이언트는 응답 바디와 쿠키로 받아 보관합니다([토큰 전달 방식](#토큰-전달-방식)). "서버 저장"은 서버 쪽 저장소(Redis)에 두느냐를 뜻합니다.
 
 - 만료 시간은 [JwtUtil](../src/main/java/com/mixmate/security/JwtUtil.java)에 상수로 들어 있습니다. `application.yaml`의 `jwt.access-expiration`/`refresh-expiration`은 코드에서 읽지 않는 값이라 실제 동작과 무관합니다([operations.md](operations.md#점검-필요-항목)).
 - 로그아웃하면 Redis의 refresh를 지우고 access를 `BLACKLIST:{accessToken}`에 **남은 만료 시간만큼** 등록합니다.
