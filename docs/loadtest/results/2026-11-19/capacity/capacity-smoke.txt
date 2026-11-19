@@ -1,0 +1,38 @@
+
+
+  █ THRESHOLDS 
+
+    http_req_duration
+    ✓ 'p(95)<200' p(95)=59.63ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 30      1.961423/s
+    checks_succeeded...: 100.00% 30 out of 30
+    checks_failed......: 0.00%   0 out of 30
+
+    ✓ login ok
+    ✓ status 200
+
+    HTTP
+    http_req_duration..............: avg=32.5ms  med=21.22ms p(90)=35.77ms p(95)=59.63ms p(99)=227.73ms max=288.61ms
+      { expected_response:true }...: avg=32.5ms  med=21.22ms p(90)=35.77ms p(95)=59.63ms p(99)=227.73ms max=288.61ms
+    http_req_failed................: 0.00%  0 out of 30
+    http_reqs......................: 30     1.961423/s
+
+    EXECUTION
+    iteration_duration.............: avg=24.59ms med=21.89ms p(90)=36.14ms p(95)=37.12ms p(99)=68.85ms  max=81.1ms  
+    iterations.....................: 29     1.896042/s
+    vus............................: 0      min=0       max=0  
+    vus_max........................: 200    min=200     max=200
+
+    NETWORK
+    data_received..................: 31 kB  2.0 kB/s
+    data_sent......................: 7.8 kB 513 B/s
+
+
+

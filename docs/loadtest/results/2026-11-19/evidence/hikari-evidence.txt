@@ -1,0 +1,28 @@
+# 서버 로그 증거 (앱 로그 원본에서 발췌 — 2026-11-19, 레포 스크립트 실행분)
+
+## A-h15 — OSIV 켬
+커넥션 획득 실패 로그 건수: 732
+첫 번째 로그:
+ERROR 14089 --- [Mixmate-WAS] [nio-8080-exec-8] o.h.engine.jdbc.spi.SqlExceptionHelper   : HikariPool-1 - Connection is not available, request timed out after 30003ms (total=10, active=10, idle=0, waiting=198)
+waiting 최댓값: 199
+
+## B-h30 — OSIV 켬
+커넥션 획득 실패 로그 건수: 760
+첫 번째 로그:
+ERROR 15247 --- [Mixmate-WAS] [io-8080-exec-24] o.h.engine.jdbc.spi.SqlExceptionHelper   : HikariPool-1 - Connection is not available, request timed out after 30005ms (total=20, active=20, idle=0, waiting=198)
+waiting 최댓값: 199
+
+## C-h30 — OSIV 끔
+커넥션 획득 실패 로그 건수: 0
+ERROR 행 수: 5  (전부 그레이스풀 셧다운 시작 30초 뒤 시각 = 앱 종료 때 SSE 연결이 강제로 정리되며 남긴 로그. 부하 중에는 0건)
+2026-11-19T14:53:15.118+09:00 INFO 15932 --- [Mixmate-WAS] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+org.springframework.web.context.request.async.AsyncRequestTimeoutException: null
+org.springframework.web.context.request.async.AsyncRequestTimeoutException: null
+
+## D-h30 — OSIV 끔
+커넥션 획득 실패 로그 건수: 0
+ERROR 행 수: 5  (전부 그레이스풀 셧다운 시작 30초 뒤 시각 = 앱 종료 때 SSE 연결이 강제로 정리되며 남긴 로그. 부하 중에는 0건)
+2026-11-19T14:56:48.732+09:00 INFO 16631 --- [Mixmate-WAS] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+org.springframework.web.context.request.async.AsyncRequestTimeoutException: null
+org.springframework.web.context.request.async.AsyncRequestTimeoutException: null
+

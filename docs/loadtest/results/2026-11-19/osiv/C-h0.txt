@@ -1,0 +1,44 @@
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{type:api}
+    ✓ 'p(95)<500' p(95)=14.26ms
+
+    http_req_failed{type:api}
+    ✓ 'rate<0.01' rate=0.00%
+
+    http_reqs{type:api}
+    ✓ 'count>=0' count=601
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 602     14.232448/s
+    checks_succeeded...: 100.00% 602 out of 602
+    checks_failed......: 0.00%   0 out of 602
+
+    ✓ login ok
+    ✓ api 200
+
+    HTTP
+    http_req_duration..............: avg=10.3ms  med=8.81ms p(90)=14.22ms p(95)=19.94ms p(99)=31.15ms max=277.63ms
+      { expected_response:true }...: avg=10.3ms  med=8.81ms p(90)=14.22ms p(95)=19.94ms p(99)=31.15ms max=277.63ms
+      { type:api }.................: avg=8.92ms  med=8.61ms p(90)=13.6ms  p(95)=14.26ms p(99)=16.5ms  max=27.7ms  
+    http_req_failed................: 0.00%  0 out of 633
+      { type:api }.................: 0.00%  0 out of 601
+    http_reqs......................: 633    14.965348/s
+      { type:api }.................: 601    14.208806/s
+
+    EXECUTION
+    iteration_duration.............: avg=10.08ms med=9.02ms p(90)=14.44ms p(95)=19.58ms p(99)=31.24ms max=48.26ms 
+    iterations.....................: 632    14.941707/s
+    vus............................: 1      min=0        max=1 
+    vus_max........................: 55     min=55       max=55
+
+    NETWORK
+    data_received..................: 829 kB 20 kB/s
+    data_sent......................: 172 kB 4.1 kB/s
+
+
+

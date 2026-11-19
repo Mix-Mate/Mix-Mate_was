@@ -1,0 +1,74 @@
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T14:53:14+09:00" level=warning msg="Request Failed" error="request timeout"
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{type:api}
+    ✓ 'p(95)<500' p(95)=11.95ms
+
+    http_req_failed{type:api}
+    ✓ 'rate<0.01' rate=0.00%
+
+    http_reqs{type:api}
+    ✓ 'count>=0' count=600
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 601     13.567119/s
+    checks_succeeded...: 100.00% 601 out of 601
+    checks_failed......: 0.00%   0 out of 601
+
+    ✓ login ok
+    ✓ api 200
+
+    HTTP
+    http_req_duration..............: avg=1.73s  med=7.22ms p(90)=14.64ms p(95)=35.75ms p(99)=38s     max=38s     
+      { expected_response:true }...: avg=9.08ms med=7.04ms p(90)=11.91ms p(95)=17.16ms p(99)=33.83ms max=289.74ms
+      { type:api }.................: avg=7.52ms med=6.86ms p(90)=10.99ms p(95)=11.95ms p(99)=14.49ms max=27.26ms 
+    http_req_failed................: 4.53%  30 out of 662
+      { type:api }.................: 0.00%  0 out of 600
+    http_reqs......................: 662    14.944148/s
+      { type:api }.................: 600    13.544545/s
+
+    EXECUTION
+    iteration_duration.............: avg=1.73s  med=7.33ms p(90)=14.87ms p(95)=36.04ms p(99)=38s     max=38s     
+    iterations.....................: 661    14.921574/s
+    vus............................: 30     min=0         max=31
+    vus_max........................: 85     min=85        max=85
+
+    NETWORK
+    data_received..................: 841 kB 19 kB/s
+    data_sent......................: 181 kB 4.1 kB/s
+
+
+

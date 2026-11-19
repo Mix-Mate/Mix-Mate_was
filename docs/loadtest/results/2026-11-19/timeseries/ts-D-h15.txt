@@ -1,0 +1,59 @@
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+time="2026-11-19T15:27:31+09:00" level=warning msg="Request Failed" error="request timeout"
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{type:api}
+    ✓ 'p(95)<500' p(95)=13.47ms
+
+    http_req_failed{type:api}
+    ✓ 'rate<0.01' rate=0.00%
+
+    http_reqs{type:api}
+    ✓ 'count>=0' count=600
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 601     13.570047/s
+    checks_succeeded...: 100.00% 601 out of 601
+    checks_failed......: 0.00%   0 out of 601
+
+    ✓ login ok
+    ✓ api 200
+
+    HTTP
+    http_req_duration..............: avg=892.19ms med=8.87ms p(90)=13.9ms  p(95)=28.72ms p(99)=38s     max=38s     
+      { expected_response:true }...: avg=10.06ms  med=8.77ms p(90)=13.4ms  p(95)=17ms    p(99)=32.45ms max=280.21ms
+      { type:api }.................: avg=8.67ms   med=8.41ms p(90)=12.57ms p(95)=13.47ms p(99)=15.28ms max=26.68ms 
+    http_req_failed................: 2.32%  15 out of 646
+      { type:api }.................: 0.00%  0 out of 600
+    http_reqs......................: 646    14.586107/s
+      { type:api }.................: 600    13.547468/s
+
+    EXECUTION
+    iteration_duration.............: avg=893.38ms med=9.13ms p(90)=14.25ms p(95)=28.68ms p(99)=38s     max=38s     
+    iterations.....................: 645    14.563528/s
+    vus............................: 15     min=0         max=16
+    vus_max........................: 70     min=70        max=70
+
+    NETWORK
+    data_received..................: 833 kB 19 kB/s
+    data_sent......................: 176 kB 4.0 kB/s
+
+
+
