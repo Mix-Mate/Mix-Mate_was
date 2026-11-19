@@ -65,6 +65,7 @@ out/
 
 .env
 mysql_data/
+caddy_logs/
 
 
 sql/
